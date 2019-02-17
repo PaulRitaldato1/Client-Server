@@ -49,7 +49,12 @@ bool Server::listening(){
 	
     int addrlen = sizeof(address);
 	//accept a connection so that I can read the input
-    std::cout << "Server::listen(): Connection accepted on port " << ntohs(address.sin_port) << " with hostname " << address.sin_addr.s_addr << std::endl;
+	struct sockaddr_in new_address;
+	int size = sizeof(new_address);
+	getsockname(_socket, (struct sockaddr*)&new_address, (socklen_t*) &size);
+   	std::cout << "Server::listening(): On Port: " << ntohs(new_address.sin_port) << std::endl;
+	std::cout << "Server::listening(): With Hostname: storm.cise.ufl.edu" << std::endl;
+
 	_connected_socket = accept(_socket, (struct sockaddr *)&address, (socklen_t*)&addrlen);
 	if(_connected_socket < 0){
 		throw std::runtime_error("Server::listen(): Failed to accept connection.");
