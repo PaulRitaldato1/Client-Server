@@ -10,10 +10,10 @@ int main(int argc, const char* argv[]){
 		try{
 
 			//listen() will return true if a connection is accepted
-			if(server.listen())
+			if(server.listening())
 				connection_alive = true;
 
-		}catch(exception& e){
+		}catch(std::exception& e){
 			std::cerr << "Connection failed to establish!" << std::endl;
 			continue;
 		}
@@ -25,12 +25,12 @@ int main(int argc, const char* argv[]){
 				//this function will return false if the kill command 'k' is given, which will then terminate the server completely
 				if(!server.parse_input()){
 					server_online = false;
-					connection_online = false;
+					connection_alive = false;
 				}
 
-			}catch (exception& e){
+			}catch (std::exception& e){
 				connection_alive = false;
-				std::cerr << "Connection has been terminated for an unkown reason!" << std::endl;
+				std::cerr << "Connection has been terminated for an unknown reason!" << std::endl;
 			}
 		}
 	}
