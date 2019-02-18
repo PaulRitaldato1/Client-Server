@@ -31,10 +31,12 @@ class Client{
         int resolve_hostname(const char* hostname, const char* port,char* ip);
         void help();
         void kill();
-        void quit();
         void check_answer();
         void random();
         void get();
         void delete_q();
         void put_q();
+
+        void read_response();
+        void send_response(std::string s);
 };

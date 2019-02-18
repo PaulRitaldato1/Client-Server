@@ -31,7 +31,7 @@ int main(int argc, const char* argv[]){
 
 			}catch (std::exception& e){
 				
-				//std::cerr << "Connection has been terminated for an unknown reason!" << e.what() << std::endl;
+				std::cerr  << e.what() << std::endl;
 			}
 		}
 	}

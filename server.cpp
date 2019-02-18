@@ -84,10 +84,6 @@ bool Server::parse_input(){
     
     //read the message
     read_bytes = read(_connected_socket, msg, size);
-    //std::string s(msg);
-    //s += "\nread bytes are: " + read_bytes; 
-    //if(read_bytes != size)
-    //    throw std::runtime_error(s);
     
     //the first byte in the message will be the command
     char command = msg[0];
@@ -188,6 +184,10 @@ void Server::delete_question(char* msg){
     int q_num = std::stoi(message);
 
     _questions.erase(_questions.begin() + (q_num - 1));
+    std::string error = "Deleted Question " + std::to_string(q_num) + "\n";
+    uint32_t length = htonl(error.length());
+    send(_connected_socket, &length, sizeof(uint32_t), 0);
+    send(_connected_socket, error.c_str(), strlen(error.c_str()), 0);
 }
 
 void Server::get_question(char* msg){
@@ -195,6 +195,7 @@ void Server::get_question(char* msg){
     message.erase(0, 2); //delete the command and following space since we already know it
     
     int q_num = std::stoi(message);
+    //throw std::runtime_error(std::to_string(_questions.size()));
     if (!index_valid(q_num)){
         std::string error = "Error: Question " + std::to_string(q_num) + " not found!\n";
         uint32_t length = htonl(error.length());
@@ -288,7 +289,7 @@ void Server::check_answer(char* msg){
 }
 
 bool Server::index_valid(int index){
-    if (index - 1 < 0 || index > _questions.size() - 1){
+    if (index < 0 || index > _questions.size()){
         return false;
     }
     else{
@@ -328,53 +329,55 @@ void Server::read_in_questions(){
     
 
     //Question(question_num, question_tag, question_text, question_choices, correct_answer)
-        
-    size_t pos = 0;
-    int question_num;
-    std::string question_tag;
-    std::string question_text;
-    std::vector<std::string> question_choices;
-    char correct_answer;
+    //while(true){    
+        size_t pos = 0;
+        int question_num;
+        std::string question_tag;
+        std::string question_text;
+        std::vector<std::string> question_choices;
+        char correct_answer;
 
-    std::string delim = "\n";
+        std::string delim = "\n";
 
-    //get question number 
-    pos = file_as_str.find(delim);
-    question_num = std::stoi(file_as_str.substr(0, pos));
-    file_as_str.erase(0, pos + delim.length());
-
-    //get correct answer
-    pos = file_as_str.find(delim);
-    correct_answer = file_as_str.substr(0, pos).at(0);
-    file_as_str.erase(0, pos + delim.length());
-
-    //get question tag
-    pos = file_as_str.find(delim);
-    question_tag = file_as_str.substr(0, pos);
-    file_as_str.erase(0, pos + delim.length());
-
-    //get question text
-    delim = ".";
-    pos = file_as_str.find(delim);
-    question_text = file_as_str.substr(0, pos);
-    file_as_str.erase(0, pos + delim.length()+1);
-    question_text.erase(question_text.size()-1);
-
-    //get all the question options
-
-    while(true){
-
+        //get question number 
         pos = file_as_str.find(delim);
-        std::string tmp = file_as_str.substr(0, pos);
-        if(tmp.at(tmp.size()-1) == '\n')
-            break;
+        question_num = std::stoi(file_as_str.substr(0, pos));
         file_as_str.erase(0, pos + delim.length());
-        tmp.erase(tmp.size()-1);
-        question_choices.push_back(tmp);
+
+        //get correct answer
+        pos = file_as_str.find(delim);
+        correct_answer = file_as_str.substr(0, pos).at(0);
+        file_as_str.erase(0, pos + delim.length());
+
+        //get question tag
+        pos = file_as_str.find(delim);
+        question_tag = file_as_str.substr(0, pos);
+        file_as_str.erase(0, pos + delim.length());
+
+        //get question text
+        delim = ".";
+        pos = file_as_str.find(delim);
+        question_text = file_as_str.substr(0, pos);
+        file_as_str.erase(0, pos + delim.length()+1);
+        question_text.erase(question_text.size()-1);
+
+        //get all the question options
+
+        while(true){
+
+            pos = file_as_str.find(delim);
+            std::string tmp = file_as_str.substr(0, pos);
+            if(tmp.at(tmp.size()-1) == '\n')
+                break;
+            file_as_str.erase(0, pos + delim.length());
+            tmp.erase(tmp.size()-1);
+
+            question_choices.push_back(tmp);
 
 
-    }
-        
-        //create question
-        _questions.push_back( new Question(question_num, question_tag, question_text, question_choices, correct_answer));
+        }
+            
+            //create question
+            _questions.push_back( new Question(question_num, question_tag, question_text, question_choices, correct_answer));
+    //}
 }
