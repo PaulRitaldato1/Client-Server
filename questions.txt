@@ -1,0 +1,42 @@
+1
+a
+presidents, US history
+Which is the first president of the USA
+.
+(a) Thomas Jefferson
+.
+(b) Abraham Lincoln
+.
+(c) George Washington
+.
+(d) Benjamin Franklin
+.
+.
+2
+b
+presidents, US history
+Which is the first president of the USA
+.
+(a) Thomas Jefferson
+.
+(b) Abraham Lincoln
+.
+(c) George Washington
+.
+(d) Benjamin Franklin
+.
+.
+3
+c
+presidents, US history
+Which is the first president of the USA
+.
+(a) Thomas Jefferson
+.
+(b) Abraham Lincoln
+.
+(c) George Washington
+.
+(d) Benjamin Franklin
+.
+.

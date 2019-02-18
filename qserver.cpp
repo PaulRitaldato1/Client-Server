@@ -1,4 +1,4 @@
-#include "connection.h"
+#include "server.h"
 
 int main(int argc, const char* argv[]){
 	
@@ -26,11 +26,12 @@ int main(int argc, const char* argv[]){
 				if(!server.parse_input()){
 					server_online = false;
 					connection_alive = false;
+					server.close_connection();
 				}
 
 			}catch (std::exception& e){
-				connection_alive = false;
-				std::cerr << "Connection has been terminated for an unknown reason!" << std::endl;
+				
+				//std::cerr << "Connection has been terminated for an unknown reason!" << e.what() << std::endl;
 			}
 		}
 	}
