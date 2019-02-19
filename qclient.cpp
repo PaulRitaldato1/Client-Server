@@ -10,7 +10,8 @@ int main(int argc, const char* argv[]){
 	}
 
     Client client;
-	client.socket_init(argv[1], argv[2]);
+	if(client.socket_init(argv[1], argv[2]) == -1)
+		return 0;
 	
 	client.connecting();
 	client.parse_input();

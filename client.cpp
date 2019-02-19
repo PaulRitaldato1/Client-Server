@@ -1,10 +1,11 @@
 #include "client.h"
-void Client::socket_init(const char* hostname, const char* port){
+int Client::socket_init(const char* hostname, const char* port){
    
     //create socket
 	_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if(_socket < 0){
 		std::cerr << "Failed to create socket!" << std::endl;
+        return -1;
 	}
 
 	memset(&serv_addr, '0', sizeof(serv_addr));
@@ -16,12 +17,14 @@ void Client::socket_init(const char* hostname, const char* port){
 	serv_addr.sin_port = htons(PORT);
 
 	if(resolve_hostname(hostname, port, ip) < 0){
-        std::cerr << "Failed to resolve hostname " << hostname << std::endl; 
+        std::cerr << "Failed to resolve hostname " << hostname << std::endl;
+        return -1;
     }
 
 	//convert ipv4 to binary data
 	if(inet_pton(AF_INET, ip.c_str(), &serv_addr.sin_addr) < 0){
 		printf("Could not use ip address provided!");
+        return -1;
 	}
 }
 

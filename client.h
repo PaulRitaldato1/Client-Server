@@ -23,7 +23,7 @@ class Client{
         int connecting();
         int parse_input();
         void close_connection();
-        void socket_init(const char* hostname, const char* port);
+        int socket_init(const char* hostname, const char* port);
     private:
         int _socket;
         struct sockaddr_in address, serv_addr;
