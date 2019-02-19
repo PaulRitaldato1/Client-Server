@@ -68,6 +68,8 @@ bool Server::listening(){
 		throw std::runtime_error("Server::listen(): Failed to accept connection.");
 	}
     else{
+        std::string s= "Connected!";
+        send_response(s);
         return true;
     }
 
@@ -80,9 +82,10 @@ bool Server::parse_input(){
 
     //The first byte sent will be a number representing how many bytes the incoming message will be
     uint32_t length;
-    if(read(_connected_socket, &length, sizeof(uint32_t)) < 0)
-        throw std::runtime_error("Server::parse_input(): Failed to read size of incoming message");
-    
+    int res = read(_connected_socket, &length, sizeof(uint32_t));
+    if(res == 0){
+        return false;
+    }
     length = ntohl(length);
     //extract the size, create a buffer the appropriate size
     int size = length;
@@ -99,7 +102,7 @@ bool Server::parse_input(){
     switch(command){
         case 'k' : 
             delete [] msg; 
-            return false;
+            throw std::runtime_error("Connection close by k");
         case 'p' : 
             create_question(msg);
             delete [] msg;
@@ -111,6 +114,7 @@ bool Server::parse_input(){
         case 'g' :
             get_question(msg);
             delete [] msg;
+            return true;
         case 'r' : 
             get_rand_question();
             delete [] msg;
@@ -125,6 +129,7 @@ bool Server::parse_input(){
             send(_connected_socket, &length, sizeof(uint32_t), 0);
             
             send(_connected_socket, error.c_str(), strlen(error.c_str()), 0);
+            delete [] msg;
             return true;
 
     }
@@ -146,18 +151,32 @@ int Server::assign_val(){
     }
 
     int* result = std::max_element<int*>(qnums, qnums + _questions.size());
-    return *result;
+    return *result + 1;
 }
 
 void Server::create_question(char* msg){
-    
+    std::string message(msg);
+    message.erase(0, 2);
+    int pos = 0;
     int question_num = assign_val();
-    std::string question_tag = read_response();
+    
+    std::string delim = "\n";
+    pos = message.find(delim);
+    std::string question_tag = message.substr(0, pos);
+    message.erase(0, pos + delim.length());
 
-    std::string question_text = read_response();
+    delim = "%";
+    pos = message.find(delim);
+    std::string question_text = message.substr(0, pos);
+    message.erase(0, pos + delim.length());
 
-    std::string choices = read_response();
-    std::string correct_answer = read_response();
+    pos = message.find(delim);
+    std::string choices = message.substr(0, pos);
+    message.erase(0, pos + delim.length());
+
+    pos = message.find(delim);
+    std::string correct_answer = message.substr(0, pos);
+
 
 
     std::vector<std::string> question_choices;
@@ -167,9 +186,10 @@ void Server::create_question(char* msg){
         if(choices.at(i) == '.')
             ++dot_count;
     }
-    std::string tmp, delim = "\n.";
-    int pos;
-    for(int i = 0; i != dot_count - 1; ++i){
+
+    std::string tmp;
+    delim = ".";
+    for(int i = 0; i != dot_count; ++i){
         pos = choices.find(delim);
         tmp = choices.substr(0, pos);
         //tmp.erase(tmp.length()- 1, 1);
@@ -177,14 +197,7 @@ void Server::create_question(char* msg){
         choices.erase(0, pos + delim.length());
 
     }
-
-    std::cout << question_tag << std::endl;
-    std::cout << question_text << std::endl;
-    std::cout << choices << std::endl;
-    std::cout << question_num << std::endl;
-    std::cout << correct_answer << std::endl;
-
-
+    
     _questions.push_back( new Question(question_num, question_tag, question_text, question_choices, correct_answer.at(0)));
     
 }
@@ -195,6 +208,7 @@ int Server::index_of(int num){
         if(num == _questions[i]->get_question_num())
             return i;
     }
+    return -1;
 }
 
 void Server::delete_question(char* msg){
@@ -205,9 +219,13 @@ void Server::delete_question(char* msg){
     int q_num = std::stoi(message);
 
     int index = index_of(q_num);
-    std::cout << index << std::endl;
+    if(index == -1){
+        std::string error = "Question " + std::to_string(q_num) + " does not exist!\n";
+        send_response(error);
+        return;
+    }
     _questions.erase(_questions.begin() + index);
-    std::string error = "Deleted Question " + std::to_string(q_num) + "\n";
+    std::string error = "Deleted Question " + std::to_string(q_num);
     send_response(error);
 }
 
@@ -217,15 +235,14 @@ void Server::get_question(char* msg){
     
     int q_num = std::stoi(message);
     //throw std::runtime_error(std::to_string(_questions.size()));
-    if (!index_valid(q_num)){
-        std::string error = "Error: Question " + std::to_string(q_num) + " not found!\n";
-        uint32_t length = htonl(error.length());
-        send(_connected_socket, &length, sizeof(uint32_t), 0);
-        send(_connected_socket, error.c_str(), strlen(error.c_str()), 0);
-        return;
+    int index = index_of(q_num);
+    if(index == -1){
+         std::string error = "Error: Question " + std::to_string(q_num) + " not found!\n";
+         send_response(error);
+         return;
     }
 
-    std::string question = _questions[index_of(q_num)]->to_string();
+    std::string question = _questions[index]->to_string_get();
 
    
     
@@ -235,20 +252,20 @@ void Server::get_question(char* msg){
 void Server::get_rand_question(){
 
     int rand_index = rand() % _questions.size();
-
-    std::string question = _questions[rand_index]->to_string();
+    int index = index_of(rand_index);
+    std::string question = _questions[rand_index]->to_string_rand();
 
     send_response(question);
 
     //wait for answer
     std::string ans = read_response();
 
-    if(_questions[index_of(rand_index)]->check_answer(ans.at(0))){
-        std::string correct_message = "Correct!\n"; 
+    if(_questions[rand_index]->check_answer(ans.at(0))){
+        std::string correct_message = "Correct!!!\n"; 
         send_response(correct_message);
     }
     else{
-        std::string incorrect_message = "Incorrect!\n"; 
+        std::string incorrect_message = "Incorrect!!!\n"; 
         send_response(incorrect_message);
     }
 
@@ -264,7 +281,8 @@ void Server::check_answer(char* msg){
     pos = message.find(delim);
     int q_num = std::stoi(message.substr(0, pos));
     message.erase(0, 2);
-    if (!index_valid(q_num)){
+    int index = index_of(q_num);
+    if (index == -1){
         std::string error = "Error: Question " + std::to_string(q_num) + " not found!\n";
         send_response(error);
         return;
@@ -274,12 +292,12 @@ void Server::check_answer(char* msg){
     //wait for answer and send response
     char ans = message.at(0);
     
-    if(_questions[index_of(q_num)]->check_answer(ans)){
-        std::string correct_message = "Correct!\n"; 
+    if(_questions[index]->check_answer(ans)){
+        std::string correct_message = "Correct!!!\n"; 
         send_response(correct_message);
     }
     else{
-        std::string incorrect_message = "Incorrect!\n"; 
+        std::string incorrect_message = "Incorrect!!!\n"; 
         send_response(incorrect_message);
     }
 }
@@ -369,7 +387,7 @@ std::string Server::read_response(){
     int size = length;
     char* msg;
     msg = new(std::nothrow) char[size];
-
+    memset(msg, '0', size);
     read(_connected_socket, msg, size);
     std::string rtn(msg);
     delete [] msg;

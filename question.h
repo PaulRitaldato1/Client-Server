@@ -13,7 +13,8 @@ class Question{
         //write out question to file
         int write_out(bool first);
         
-        std::string to_string(); //returns string that can be presented to client
+        std::string to_string_rand(); //returns string that can be presented to client
+        std::string to_string_get(); //returns string that can be presented to client
         inline bool check_answer(char ans){ return ans == _correct_answer; }
 
         inline int get_question_num() { return _question_num; }

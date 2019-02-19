@@ -1,9 +1,30 @@
 #include "question.h"
 
-std::string Question::to_string(){
+std::string Question::to_string_rand(){
     std::string rtn_str = "";
 
     rtn_str += std::to_string(_question_num);
+    rtn_str += "\n";
+    rtn_str += _question_text;
+    rtn_str += "\n";
+
+    
+    for(int i = 0; i != _question_choices.size(); ++i){
+    
+        rtn_str += _question_choices[i];
+        rtn_str += "\n";
+
+
+    }
+
+    return rtn_str;
+
+}
+
+std::string Question::to_string_get(){
+    std::string rtn_str = "";
+
+    rtn_str += _question_tag;
     rtn_str += "\n";
     rtn_str += _question_text;
     rtn_str += "\n";
@@ -13,11 +34,13 @@ std::string Question::to_string(){
         rtn_str += _question_choices[i];
         rtn_str += "\n";
 
+
     }
 
     return rtn_str;
 
 }
+
 
 int Question::write_out(bool first){
     std::string out_str = to_string_IO();

@@ -15,12 +15,12 @@ void Client::socket_init(const char* hostname, const char* port){
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(PORT);
 
-	if(resolve_hostname(hostname, hostname, ip) < 0){
+	if(resolve_hostname(hostname, port, ip) < 0){
         std::cerr << "Failed to resolve hostname " << hostname << std::endl; 
     }
 
 	//convert ipv4 to binary data
-	if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) < 0){
+	if(inet_pton(AF_INET, ip, &serv_addr.sin_addr) < 0){
 		printf("Could not use ip address provided!");
 	}
 }
@@ -31,7 +31,7 @@ int Client::connecting(){
 		printf("Connection Failed!");
         return -1;
 	}
-    std::cout << "Connected!" << std::endl;
+    read_response();
 }
 
 void Client::close_connection(){
@@ -159,7 +159,7 @@ int  Client::random(){
 
 int Client::get(){
             std::string command = "g";
-            std::string number;
+            std::string number = "";
             std::cin >> number;
             std::string s = command + " " + number;
             if(send_response(s) == -1)
@@ -170,7 +170,7 @@ int Client::get(){
 int Client::delete_q(){
 
             std::string command = "d";
-            std::string number;
+            std::string number = "";
             std::cin >> number;
 
             std::string s = command + " " + number;
@@ -193,7 +193,7 @@ int Client::put_q(){
         getline(std::cin, tmp, '.');
         if(tmp.size() == 1 || tmp.size() == 2)
             break;
-        tmp.back() = ".";
+        tmp.back() = '.';
         tmp.erase(0, 1);
 
         choices += tmp;
@@ -208,21 +208,12 @@ int Client::put_q(){
     // std::cout << answer << std::endl;
 
     std::string result = "p%";
-    result += tag + "%"; 
+    result += tag; 
     result += text + "%";
     result += choices + "%"; 
     result += answer + "%";
-    std::cout << result;
-    // send_response("p");
-    // read_response();
-    // send_response(tag);
-    // read_response();
-    // send_response(text);
-    // read_response();
-    // send_response(choices);
-    // read_response();
-    // send_response(answer);
-    // read_response();
+    //std::cout << result;
+    send_response(result);
 }
 
 void Client::read_response(){
