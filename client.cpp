@@ -24,6 +24,7 @@ void Client::socket_init(const char* hostname, const char* port){
 		printf("Could not use ip address provided!");
 	}
 }
+
 int Client::connecting(){
 	//open connection with server
 	if(connect(_socket, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0){
@@ -64,16 +65,19 @@ int Client::resolve_hostname(const char* hostname, const char* port, char* ip){
 
      bool run_client = true;
      while(run_client){
-         char command;
-         std::cout << "> " <<std::endl;
+         char command = 0;
+         std::cout << "> ";
          std::cin >> command;
 
          switch(command){
             case 'k':
-                kill();
+                if (kill() == -1)
+                    run_client = false;
+                run_client = false;
                 break;
             case 'p':
-                put_q();
+                if(put_q() == -1)
+                    run_client = false;
                 break;
             case 'q' :
                 close_connection();               
@@ -83,16 +87,20 @@ int Client::resolve_hostname(const char* hostname, const char* port, char* ip){
                 help();
                 break;
             case 'd' :
-                delete_q();
+                if(delete_q() == -1)
+                    run_client = false;
                 break;
             case 'g' :
-                get();
+                if(get() == -1)
+                    run_client = false;
                 break;
             case 'r' :
-                random();
+                if(random() == -1)
+                    run_client = false;
                 break;
             case 'c' :
-                check_answer();
+                if(check_answer() == -1)
+                    run_client = false;
                 break;
             default :
                 continue;
@@ -105,17 +113,18 @@ int Client::resolve_hostname(const char* hostname, const char* port, char* ip){
 
  }
 
-        void Client::help(){
-            std::string help_message = "Here are the commands you can use:\np - put question on server\nd<n> - delete question <n> from bank\ng<n> - get question <n> from bank\nr - get random question from bank\nc <n> <x> - check answer <x> of question <n>\nk - kill the server\nq - quit the client\nh - print this help message";
-            std::cout << help_message << std::endl;       
-        }
-        void Client::kill(){
-            //send kill message
-            std::string command = "k";
-            send_response(command);
-        }
+void Client::help(){
+    std::string help_message = "Here are the commands you can use:\np - put question on server\nd<n> - delete question <n> from bank\ng<n> - get question <n> from bank\nr - get random question from bank\nc <n> <x> - check answer <x> of question <n>\nk - kill the server\nq - quit the client\nh - print this help message";
+    std::cout << help_message << std::endl;       
+}
 
-        void Client::check_answer(){
+int Client::kill(){
+    //send kill message
+    std::string command = "k";
+    return send_response(command);
+}
+
+int Client::check_answer(){
             std::string command = "c";
             std::string number;
             std::cin >> number;
@@ -123,54 +132,100 @@ int Client::resolve_hostname(const char* hostname, const char* port, char* ip){
             std::cin >> ans;
 
             std::string s = command + " " + number + " " + ans;
-            send_response(s);
+            if(send_response(s) == -1)
+                return -1;
             read_response();
-        }
+}
 
-        void Client::random(){
+int  Client::random(){
             std::string command = "r";
-            send_response(command);
+            if(send_response(command) == -1)
+                return -1;
             read_response();
             std::string choice;
 
-            bool input = true;
-            while(input){
-                std::cin >> choice;
-                if(choice.at(0) >= 'a' && choice.at(0) <= 'd'){
-                    send_response(choice);
-                    input = false;
-                    continue;
-                }
-                else{
-                    std::cout << "Invalid input, try any char a-d" << std::endl;
-                }
+            std::cin >> choice;
+            if(choice.at(0) >= 'a' && choice.at(0) <= 'd'){
+                if(send_response(choice) == -1)
+                    return -1;
+            }
+            else{
+                std::cout << "Invalid input, try any char a-d" << std::endl;
             }
 
             read_response();
             
         }
-        void Client::get(){
+
+int Client::get(){
             std::string command = "g";
             std::string number;
             std::cin >> number;
             std::string s = command + " " + number;
-            send_response(s);
+            if(send_response(s) == -1)
+                return -1;
             read_response();
         }
 
-        void Client::delete_q(){
+int Client::delete_q(){
 
             std::string command = "d";
             std::string number;
             std::cin >> number;
 
             std::string s = command + " " + number;
-            send_response(s);
+            if(send_response(s) == -1)
+                return -1;
             read_response();
         }
-        void Client::put_q(){}
 
-        void Client::read_response(){
+int Client::put_q(){
+
+    std::string tag;
+    getline(std::cin, tag);
+    
+    std::string text;
+    getline(std::cin, text, '.');
+    text.erase(text.length()-1, 1);
+    std::string tmp, choices;
+    
+    for(int i = 0; i != 5; ++i){
+        getline(std::cin, tmp, '.');
+        if(tmp.size() == 1 || tmp.size() == 2)
+            break;
+        tmp.back() = ".";
+        tmp.erase(0, 1);
+
+        choices += tmp;
+    }
+
+    std::string answer;
+    std::cin >> answer;
+
+    // std::cout << tag;
+    // std::cout << text;
+    // std::cout << choices;
+    // std::cout << answer << std::endl;
+
+    std::string result = "p%";
+    result += tag + "%"; 
+    result += text + "%";
+    result += choices + "%"; 
+    result += answer + "%";
+    std::cout << result;
+    // send_response("p");
+    // read_response();
+    // send_response(tag);
+    // read_response();
+    // send_response(text);
+    // read_response();
+    // send_response(choices);
+    // read_response();
+    // send_response(answer);
+    // read_response();
+}
+
+void Client::read_response(){
 
             uint32_t length;
             read(_socket, &length, sizeof(uint32_t));
@@ -186,8 +241,8 @@ int Client::resolve_hostname(const char* hostname, const char* port, char* ip){
             delete [] msg;
         }
 
-        void Client::send_response(std::string s){
+int Client::send_response(std::string s){
             uint32_t length = htonl(s.length());
             send(_socket, &length, sizeof(uint32_t), 0);
-            send(_socket, s.c_str(), strlen(s.c_str()), 0);
+            return send(_socket, s.c_str(), strlen(s.c_str()), 0);
         }

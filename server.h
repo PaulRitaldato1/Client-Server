@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <fstream>
 #include<sstream>
+#include <algorithm>
 /* end C++ headers */
 
 
@@ -50,6 +51,10 @@ class Server{
         bool index_valid(int index);
         //void check_ans_help(int q_num);
         void check_answer(char* msg);
+        int assign_val();
+        int index_of(int num);
+        std::string read_response();
+        int send_response(std::string s);
 };
 
 

@@ -30,13 +30,13 @@ class Client{
 
         int resolve_hostname(const char* hostname, const char* port,char* ip);
         void help();
-        void kill();
-        void check_answer();
-        void random();
-        void get();
-        void delete_q();
-        void put_q();
+        int kill();
+        int check_answer();
+        int random();
+        int get();
+        int delete_q();
+        int put_q();
 
         void read_response();
-        void send_response(std::string s);
+        int send_response(std::string s);
 };

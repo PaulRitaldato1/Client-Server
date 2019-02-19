@@ -11,7 +11,7 @@ class Question{
 
         inline ~Question(){ delete this; }
         //write out question to file
-        int write_out();
+        int write_out(bool first);
         
         std::string to_string(); //returns string that can be presented to client
         inline bool check_answer(char ans){ return ans == _correct_answer; }
