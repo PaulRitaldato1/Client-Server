@@ -47,9 +47,7 @@ int Client::resolve_hostname(const char* hostname, const char* port, char* ip){
 
     struct addrinfo* results = 0;
 
-    if(getaddrinfo(hostname, port, &hints, &results)){
-        return -1;
-    }
+    getaddrinfo(hostname, port, &hints, &results);
 
     for (results; results != NULL; results->ai_next){
         struct sockaddr_in* temp = (struct sockaddr_in* ) results->ai_addr;

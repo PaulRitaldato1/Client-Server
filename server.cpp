@@ -61,7 +61,7 @@ bool Server::listening(){
 	int size = sizeof(new_address);
 	getsockname(_socket, (struct sockaddr*)&new_address, (socklen_t*) &size);
    	std::cout << "Server::listening(): On Port: " << ntohs(new_address.sin_port) << std::endl;
-	std::cout << "Server::listening(): With ANY Hostname but here is one: storm.cise.ufl.edu" << std::endl;
+	std::cout << "Server::listening(): Hostname: storm.cise.ufl.edu" << std::endl;
 
 	_connected_socket = accept(_socket, (struct sockaddr *)&address, (socklen_t*)&addrlen);
 	if(_connected_socket < 0){
