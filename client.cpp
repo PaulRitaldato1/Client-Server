@@ -10,7 +10,6 @@ int Client::socket_init(const char* hostname, const char* port){
 
 	memset(&serv_addr, '0', sizeof(serv_addr));
 	
-    //char ip[15]; //max size an ip addr can be 255.255.255.255 = 15 chars
 	std::string ip = "";
 	unsigned short PORT = atoi(port);
 	serv_addr.sin_family = AF_INET;
@@ -196,10 +195,6 @@ int Client::put_q(){
     std::string answer;
     std::cin >> answer;
 
-    // std::cout << tag;
-    // std::cout << text;
-    // std::cout << choices;
-    // std::cout << answer << std::endl;
 
     std::string result = "p%";
     result += tag; 
@@ -208,6 +203,7 @@ int Client::put_q(){
     result += answer + "%";
     //std::cout << result;
     send_response(result);
+    read_response();
 }
 
 void Client::read_response(){
@@ -218,7 +214,7 @@ void Client::read_response(){
             //extract the size, create a buffer the appropriate size
             int size = length;
             char* msg;
-            msg = new(std::nothrow) char[size];
+            msg = new(std::nothrow) char[size]();
 
             read(_socket, msg, size);
 

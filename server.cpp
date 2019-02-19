@@ -176,7 +176,7 @@ void Server::create_question(char* msg){
 
     pos = message.find(delim);
     std::string correct_answer = message.substr(0, pos);
-
+    send_response(std::to_string(question_num));
 
 
     std::vector<std::string> question_choices;
@@ -234,7 +234,7 @@ void Server::get_question(char* msg){
     message.erase(0, 2); //delete the command and following space since we already know it
     
     int q_num = std::stoi(message);
-    //throw std::runtime_error(std::to_string(_questions.size()));
+
     int index = index_of(q_num);
     if(index == -1){
          std::string error = "Error: Question " + std::to_string(q_num) + " not found!\n";
@@ -386,8 +386,7 @@ std::string Server::read_response(){
     //extract the size, create a buffer the appropriate size
     int size = length;
     char* msg;
-    msg = new(std::nothrow) char[size];
-    memset(msg, '0', size);
+    msg = new(std::nothrow) char[size]();
     read(_connected_socket, msg, size);
     std::string rtn(msg);
     delete [] msg;
