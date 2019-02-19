@@ -28,7 +28,7 @@ class Client{
         int _socket;
         struct sockaddr_in address, serv_addr;
 
-        int resolve_hostname(const char* hostname, const char* port,char* ip);
+        int resolve_hostname(const char* hostname, const char* port,std::string& ip);
         void help();
         int kill();
         int check_answer();

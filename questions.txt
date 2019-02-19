@@ -40,15 +40,3 @@ Which is the first president of the USA
 (d) Benjamin Franklin
 .
 .
-4
-c
-presidents
-first black?
-.
-(a) afd
-.
-(b) adsf
-.
-(c) sad
-.
-.

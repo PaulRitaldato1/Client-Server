@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++11
 
-all: qclient qserver
+all: qclient qserver clean
 
 qserver: question.o server.o qserver.o
 	$(CXX) $(CXXFLAGS) -o qserver question.o server.o qserver.o

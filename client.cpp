@@ -9,8 +9,8 @@ void Client::socket_init(const char* hostname, const char* port){
 
 	memset(&serv_addr, '0', sizeof(serv_addr));
 	
-    char ip[15]; //max size an ip addr can be 255.255.255.255 = 15 chars
-
+    //char ip[15]; //max size an ip addr can be 255.255.255.255 = 15 chars
+	std::string ip = "";
 	unsigned short PORT = atoi(port);
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(PORT);
@@ -20,7 +20,7 @@ void Client::socket_init(const char* hostname, const char* port){
     }
 
 	//convert ipv4 to binary data
-	if(inet_pton(AF_INET, ip, &serv_addr.sin_addr) < 0){
+	if(inet_pton(AF_INET, ip.c_str(), &serv_addr.sin_addr) < 0){
 		printf("Could not use ip address provided!");
 	}
 }
@@ -38,24 +38,17 @@ void Client::close_connection(){
     close(_socket);
 }
 
-int Client::resolve_hostname(const char* hostname, const char* port, char* ip){
+int Client::resolve_hostname(const char* hostname, const char* port, std::string& ip){
     
-    struct addrinfo hints;
 
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
+	hostent* host = gethostbyname(hostname);
+	if(host == NULL){
+		return -1;
+	}
 
-    struct addrinfo* results = 0;
-
-    getaddrinfo(hostname, port, &hints, &results);
-
-    for (results; results != NULL; results->ai_next){
-        struct sockaddr_in* temp = (struct sockaddr_in* ) results->ai_addr;
-        strcpy(ip, inet_ntoa(temp->sin_addr));
-    }
-
-    freeaddrinfo(results);
-    return 0;
+	in_addr* address = (in_addr*)host->h_addr;
+	ip = inet_ntoa(* address);
+    	return 0;
 
 }
 
