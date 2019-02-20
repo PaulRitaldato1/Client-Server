@@ -17,7 +17,7 @@ std::string Question::to_string_rand(){
 
     }
 
-    return rtn_str;
+    return rtn_str.substr(0, rtn_str.length() - 1);
 
 }
 
@@ -36,6 +36,7 @@ std::string Question::to_string_get(){
 
 
     }
+    rtn_str += _correct_answer;
 
     return rtn_str;
 

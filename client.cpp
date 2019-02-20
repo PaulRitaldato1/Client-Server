@@ -136,14 +136,14 @@ int  Client::random(){
                 return -1;
             read_response();
             std::string choice;
-
+            std::cout << "answer is: ";
             std::cin >> choice;
             if(choice.at(0) >= 'a' && choice.at(0) <= 'd'){
                 if(send_response(choice) == -1)
                     return -1;
             }
             else{
-                std::cout << "Invalid input, try any char a-d" << std::endl;
+                std::cout << "Invalid input, try any char a,b,c,d" << std::endl;
             }
 
             read_response();
@@ -173,25 +173,36 @@ int Client::delete_q(){
         }
 
 int Client::put_q(){
-
+    std::cout << "put a question in the bank" << std::endl;
     std::string tag;
+
+
     getline(std::cin, tag);
+
     
-    std::string text;
+    std::string text = "";
+    
+
     getline(std::cin, text, '.');
     text.erase(text.length()-1, 1);
     std::string tmp, choices;
+        std::cout << "Choice: ";
+        int i;
+        for(i = 0; i != 5; ++i){
+            getline(std::cin, tmp, '.');
+            if(tmp.size() == 1 || tmp.size() == 2)
+                break;
+            tmp.back() = '.';
+            tmp.erase(0, 1);
+
+            choices += tmp;
+        }
+        if(i < 2){
+            std::cout << "You didnt input enough choices! Try inputing the question again!" << std::endl;
+            return 0;
+        }
+
     
-    for(int i = 0; i != 5; ++i){
-        getline(std::cin, tmp, '.');
-        if(tmp.size() == 1 || tmp.size() == 2)
-            break;
-        tmp.back() = '.';
-        tmp.erase(0, 1);
-
-        choices += tmp;
-    }
-
     std::string answer;
     std::cin >> answer;
 
@@ -214,8 +225,8 @@ void Client::read_response(){
             //extract the size, create a buffer the appropriate size
             int size = length;
             char* msg;
-            msg = new(std::nothrow) char[size]();
-
+            msg = new(std::nothrow) char[size + 1]();
+            msg[size] = '\0';
             read(_socket, msg, size);
 
             std::cout << msg << std::endl;
@@ -225,5 +236,5 @@ void Client::read_response(){
 int Client::send_response(std::string s){
             uint32_t length = htonl(s.length());
             send(_socket, &length, sizeof(uint32_t), 0);
-            return send(_socket, s.c_str(), strlen(s.c_str()), 0);
+            return send(_socket, s.c_str(), s.length(), 0);
         }

@@ -49,10 +49,11 @@ class Server{
         void get_question(char* msg);
         void get_rand_question();
         bool index_valid(int index);
-        //void check_ans_help(int q_num);
         void check_answer(char* msg);
         int assign_val();
         int index_of(int num);
+
+        //protocol commands
         std::string read_response();
         int send_response(std::string s);
 };
