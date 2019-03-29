@@ -15,7 +15,6 @@ Server::~Server(){
                 {
                     _questions[i]->write_out(false);
                 }
-                
         }
     }
     close_connection();
@@ -92,10 +91,10 @@ bool Server::parse_input(){
     char* msg;
     msg = new(std::nothrow) char[size + 1];
     msg[size] = '\0';
-    
+
     //read the message
     read_bytes = read(_connected_socket, msg, size);
-    
+
     //the first byte in the message will be the command
     char command = msg[0];
     //switch statement to handle commands
@@ -127,40 +126,44 @@ bool Server::parse_input(){
             std::string error = "Invalid command";
             uint32_t length = htonl(error.length());
             send(_connected_socket, &length, sizeof(uint32_t), 0);
-            
             send(_connected_socket, error.c_str(), strlen(error.c_str()), 0);
             delete [] msg;
             return true;
 
     }
-    
-    
 }
 
 void Server::close_connection(){
     close(_connected_socket);
 }
 
-int Server::assign_val(){
-    int* qnums;
-    qnums = new int[_questions.size()];
-    for(int i = 0; i != _questions.size(); ++i){
-        
-        qnums[i] = _questions[i]->get_question_num();
-    
-    }
-
-    int* result = std::max_element<int*>(qnums, qnums + _questions.size());
-    return *result + 1;
-}
+//int Server::assign_val(){
+//    int* qnums;
+//    qnums = new int[_questions.size()];
+//    for(int i = 0; i != _questions.size(); ++i){
+//
+//        qnums[i] = _questions[i]->get_question_num();
+//
+//    }
+//
+//    int* result = std::max_element<int*>(qnums, qnums + _questions.size());
+//    return *result + 1;
+//}
 
 void Server::create_question(char* msg){
+    std::string delim = "\n";
     std::string message(msg);
     message.erase(0, 2);
     int pos = 0;
-    int question_num = assign_val();
-    
-    std::string delim = "\n";
+    pos = message.find(delim);
+    int question_num = std::stoi(message.substr(0, pos));
+    message.erase(0, pos + delim.length())
+
+    //this function returns -1 if it couldnt find the value. This is used to test if the question already exists
+    if(index_of(question_num) != -1){
+      send_response("Error: question number " + std::to_string(quesiton_num) + " already used")
+    }
+
     pos = message.find(delim);
     std::string question_tag = message.substr(0, pos);
     message.erase(0, pos + delim.length());
@@ -176,7 +179,7 @@ void Server::create_question(char* msg){
 
     pos = message.find(delim);
     std::string correct_answer = message.substr(0, pos);
-    send_response(std::to_string(question_num));
+    send_response("Question " + std::to_string(question_num) + " added");
 
 
     std::vector<std::string> question_choices;
@@ -197,9 +200,7 @@ void Server::create_question(char* msg){
         choices.erase(0, pos + delim.length());
 
     }
-    
     _questions.push_back( new Question(question_num, question_tag, question_text, question_choices, correct_answer.at(0)));
-    
 }
 
 int Server::index_of(int num){
@@ -237,15 +238,13 @@ void Server::get_question(char* msg){
 
     int index = index_of(q_num);
     if(index == -1){
-         std::string error = "Error: Question " + std::to_string(q_num) + " not found!";
+         std::string error = "Error: Question " + std::to_string(q_num) + " not found";
          send_response(error);
          return;
     }
 
     std::string question = _questions[index]->to_string_get();
 
-   
-    
     send_response(question);
 }
 

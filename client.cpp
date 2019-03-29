@@ -61,7 +61,7 @@ int Client::resolve_hostname(const char* hostname, const char* port, std::string
          char command = 0;
          std::cout << "> ";
          std::cin >> command;
-
+         
          switch(command){
             case 'k':
                 if (kill() == -1)
