@@ -99,10 +99,10 @@ bool Server::parse_input(){
     char command = msg[0];
     //switch statement to handle commands
     switch(command){
-        case 'k' : 
-            delete [] msg; 
+        case 'k' :
+            delete [] msg;
             throw std::runtime_error("Connection close by kill command");
-        case 'p' : 
+        case 'p' :
             create_question(msg);
             delete [] msg;
             return true;
@@ -114,7 +114,7 @@ bool Server::parse_input(){
             get_question(msg);
             delete [] msg;
             return true;
-        case 'r' : 
+        case 'r' :
             get_rand_question();
             delete [] msg;
             return true;

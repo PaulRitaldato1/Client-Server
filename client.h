@@ -17,11 +17,11 @@
 #include <fstream>
 /* end C++ headers */
 
-class Client{
+class Contestmeister{
 
     public:
         int connecting();
-        int parse_input();
+        int parse_input(filename);
         void close_connection();
         int socket_init(const char* hostname, const char* port);
     private:
