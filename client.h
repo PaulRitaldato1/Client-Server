@@ -5,13 +5,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include<stdio.h>
-#include<netdb.h>	
+#include <stdio.h>
+#include <netdb.h>
 /* end C networking headers */
 
 /* C++ headers */
-#include<iostream>
-#include<vector>
+#include <iostream>
+#include <vector>
 #include "question.h"
 #include <stdexcept>
 #include <fstream>
@@ -29,13 +29,17 @@ class Contestmeister{
         struct sockaddr_in address, serv_addr;
 
         int resolve_hostname(const char* hostname, const char* port,std::string& ip);
-        void help();
-        int kill();
-        int check_answer();
-        int random();
-        int get();
-        int delete_q();
-        int put_q();
+        void help(std::istream& stream);
+        int kill(std::istream& stream);
+        int check_answer(std::istream& stream);
+        int random(std::istream& stream);
+        int get(std::istream& stream);
+        int delete_q(std::istream& stream);
+        int put_q(std::istream& stream);
+        int set_contest(std::istream& stream);
+        int add_question(std::istream& stream);
+        int begin_contest(std::istream& stream);
+        int list_contests(std::istream& stream);
 
         void read_response();
         int send_response(std::string s);

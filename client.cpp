@@ -23,12 +23,12 @@ int Contestmeister::socket_init(const char* hostname, const char* port){
 }
 
 int Contestmeister::connecting(){
-	//open connection with server
-	if(connect(_socket, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0){
-      printf("Connection Failed!");
-      return -1;
-	}
-  read_response();
+    //open connection with server
+    if(connect(_socket, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0){
+        printf("Connection Failed!");
+        return -1;
+    }
+    read_response();
 }
 
 void Contestmeister::close_connection(){
@@ -48,9 +48,17 @@ int Contestmeister::resolve_hostname(const char* hostname, const char* port, std
 
 int Contestmeister::parse_input(filename){
 
+    std::string commands;
+    std::istream input;
     if(!filename.empty()){
         //read from file
+        input = std::ifstream f(filename);
+        //commands = std::string( (std::istreambuf_iterator _iterator<char>(f)), (std::istreambuf_iterator<char>()));
     }
+    else{
+        input = std::cin;
+    }
+
     bool run_client = true;
     while(run_client){
         char command = 0;
@@ -89,14 +97,61 @@ int Contestmeister::parse_input(filename){
             if(check_answer() == -1)
                 run_client = false;
             break;
+        case 's':
+            if(set_contest())
+                run_client = false;
+        case 'a':
+            if(add_question())
+                run_client = false;
+        case 'b':
+            if(begin_contest())
+                run_client = false;
+        case 'l':
+            if(list_contests())
+                run_client = false;
         default :
             continue;
         }
     }
-
     return 1;
+}
 
- }
+int Contestmeister::list_contests(){
+    std::string command = "l";
+    if (send_response(command))
+        return -1;
+    read_response();
+}
+int Contestmeister::being_contest(){
+    std::string command = "b";
+    std::string c_num;
+    std::cin >> c_num;
+
+
+    if (send_response(command + " " + c_num))
+        return -1;
+    read_response();
+}
+int Contestmeister::add_question(){
+    std::string command = "a";
+    std::string c_num, q_num;
+    std::cin >> c_num;
+    std::cin >> q_num;
+
+    if (send_response(command + " " + c_num + " " + q_num))
+        return -1;
+
+    read_response();
+}
+
+int Contestmeister::set_contest(){
+    std::string command = "s";
+    std::string number;
+    std::cin >> number;
+    if(send_response(command + " " + number))
+        return -1;
+    read_response();
+}
 
 void Contestmeister::help(){
     std::string help_message = "Here are the commands you can use:\np - put question on server\nd<n> - delete question <n> from bank\ng<n> - get question <n> from bank\nr - get random question from bank\nc <n> <x> - check answer <x> of question <n>\nk - kill the server\nq - quit the client\nh - print this help message";
@@ -115,14 +170,14 @@ int Contestmeister::check_answer(){
     std::cin >> number;
     std::string ans;
     std::cin >> ans;
-    
+
     std::string s = command + " " + number + " " + ans;
     if(send_response(s) == -1)
         return -1;
     read_response();
 }
 
-int  Contestmeister::random(){
+int Contestmeister::random(){
     std::string command = "r";
     if(send_response(command) == -1)
         return -1;

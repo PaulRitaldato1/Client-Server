@@ -9,9 +9,9 @@ Server::~Server(){
         remove("questions.txt");
     else{
         for(int i = 0; i != _questions.size(); ++i){
-                if(i == 0)
-                    _questions[i]->write_out(true);
-                else
+            if(i == 0)
+                _questions[i]->write_out(true);
+            else
                 {
                     _questions[i]->write_out(false);
                 }
@@ -24,48 +24,48 @@ Server::~Server(){
 void Server::socket_init(){
 
     _socket = socket(AF_INET, SOCK_STREAM, 0);
-	if( _socket < 0){
-		throw std::runtime_error("Server::socket_init(): Failed to create TCP socket file descriptor.");
-	}
+    if( _socket < 0){
+        throw std::runtime_error("Server::socket_init(): Failed to create TCP socket file descriptor.");
+    }
 
     int opt = 1;
-	int addrlen = sizeof(address);
+    int addrlen = sizeof(address);
 
     //set socket options
-	if(setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))){
-		throw std::runtime_error("Server::socket_init(): Failed to set socket options.");
-	}
+    if(setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))){
+        throw std::runtime_error("Server::socket_init(): Failed to set socket options.");
+    }
 
     //set address options
-	address.sin_family = AF_INET;
-	address.sin_port = htons(0);
-	address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_family = AF_INET;
+    address.sin_port = htons(0);
+    address.sin_addr.s_addr = INADDR_ANY;
 
     //bind the socket
-	if(bind(_socket, (struct sockaddr *)&address, sizeof(address) ) < 0){
-		throw std::runtime_error("Server::socket_init(): Failed to bind socket.");
-	}
+    if(bind(_socket, (struct sockaddr *)&address, sizeof(address) ) < 0){
+        throw std::runtime_error("Server::socket_init(): Failed to bind socket.");
+    }
 }
 
 bool Server::listening(){
-	
-	//Open the socket for listening, only allow 1 connection at a time.	
-	if(listen(_socket, 1) < 0){
-		throw std::runtime_error("Server::listen(): Failed to listen on socket.");
-	}
-	
-    int addrlen = sizeof(address);
-	//accept a connection so that I can read the input
-	struct sockaddr_in new_address;
-	int size = sizeof(new_address);
-	getsockname(_socket, (struct sockaddr*)&new_address, (socklen_t*) &size);
-   	std::cout << "Server::listening(): On Port: " << ntohs(new_address.sin_port) << std::endl;
-	std::cout << "Server::listening(): Hostname: storm.cise.ufl.edu" << std::endl;
 
-	_connected_socket = accept(_socket, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-	if(_connected_socket < 0){
-		throw std::runtime_error("Server::listen(): Failed to accept connection.");
-	}
+    //Open the socket for listening, only allow 1 connection at a time.
+    if(listen(_socket, 1) < 0){
+        throw std::runtime_error("Server::listen(): Failed to listen on socket.");
+    }
+
+    int addrlen = sizeof(address);
+    //accept a connection so that I can read the input
+    struct sockaddr_in new_address;
+    int size = sizeof(new_address);
+    getsockname(_socket, (struct sockaddr*)&new_address, (socklen_t*) &size);
+   	std::cout << "Server::listening(): On Port: " << ntohs(new_address.sin_port) << std::endl;
+    std::cout << "Server::listening(): Hostname: storm.cise.ufl.edu" << std::endl;
+
+    _connected_socket = accept(_socket, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    if(_connected_socket < 0){
+        throw std::runtime_error("Server::listen(): Failed to accept connection.");
+    }
     else{
         std::string s= "Connected!";
         send_response(s);
@@ -99,36 +99,38 @@ bool Server::parse_input(){
     char command = msg[0];
     //switch statement to handle commands
     switch(command){
-        case 'k' :
-            delete [] msg;
-            throw std::runtime_error("Connection close by kill command");
-        case 'p' :
-            create_question(msg);
-            delete [] msg;
-            return true;
-        case 'd' :
-            delete_question(msg);
-            delete [] msg;
-            return true;
-        case 'g' :
-            get_question(msg);
-            delete [] msg;
-            return true;
-        case 'r' :
-            get_rand_question();
-            delete [] msg;
-            return true;
-        case 'c' :
-            check_answer(msg);
-            delete [] msg;
-            return true;
-        default:
-            std::string error = "Invalid command";
-            uint32_t length = htonl(error.length());
-            send(_connected_socket, &length, sizeof(uint32_t), 0);
-            send(_connected_socket, error.c_str(), strlen(error.c_str()), 0);
-            delete [] msg;
-            return true;
+    case 'k' :
+        delete [] msg;
+        throw std::runtime_error("Connection close by kill command");
+    case 'p' :
+        create_question(msg);
+        delete [] msg;
+        return true;
+    case 'd' :
+        delete_question(msg);
+        delete [] msg;
+        return true;
+    case 'g' :
+        get_question(msg);
+        delete [] msg;
+        return true;
+    case 'r' :
+        get_rand_question();
+        delete [] msg;
+        return true;
+    case 'c' :
+        check_answer(msg);
+        delete [] msg;
+        return true;
+    case 's':
+
+    default:
+        std::string error = "Invalid command";
+        uint32_t length = htonl(error.length());
+        send(_connected_socket, &length, sizeof(uint32_t), 0);
+        send(_connected_socket, error.c_str(), strlen(error.c_str()), 0);
+        delete [] msg;
+        return true;
 
     }
 }
@@ -159,10 +161,10 @@ void Server::create_question(char* msg){
     int question_num = std::stoi(message.substr(0, pos));
     message.erase(0, pos + delim.length())
 
-    //this function returns -1 if it couldnt find the value. This is used to test if the question already exists
-    if(index_of(question_num) != -1){
-      send_response("Error: question number " + std::to_string(quesiton_num) + " already used")
-    }
+        //this function returns -1 if it couldnt find the value. This is used to test if the question already exists
+        if(index_of(question_num) != -1){
+            send_response("Error: question number " + std::to_string(quesiton_num) + " already used")
+                }
 
     pos = message.find(delim);
     std::string question_tag = message.substr(0, pos);
@@ -233,14 +235,14 @@ void Server::delete_question(char* msg){
 void Server::get_question(char* msg){
     std::string message(msg);
     message.erase(0, 2); //delete the command and following space since we already know it
-    
+
     int q_num = std::stoi(message);
 
     int index = index_of(q_num);
     if(index == -1){
-         std::string error = "Error: Question " + std::to_string(q_num) + " not found";
-         send_response(error);
-         return;
+        std::string error = "Error: Question " + std::to_string(q_num) + " not found";
+        send_response(error);
+        return;
     }
 
     std::string question = _questions[index]->to_string_get();
@@ -260,11 +262,11 @@ void Server::get_rand_question(){
     std::string ans = read_response();
 
     if(_questions[rand_index]->check_answer(ans.at(0))){
-        std::string correct_message = "Correct!"; 
+        std::string correct_message = "Correct!";
         send_response(correct_message);
     }
     else{
-        std::string incorrect_message = "Incorrect!"; 
+        std::string incorrect_message = "Incorrect!";
         send_response(incorrect_message);
     }
 
@@ -287,16 +289,15 @@ void Server::check_answer(char* msg){
         return;
     }
 
-    
     //wait for answer and send response
     char ans = message.at(0);
-    
+
     if(_questions[index]->check_answer(ans)){
-        std::string correct_message = "Correct!"; 
+        std::string correct_message = "Correct!";
         send_response(correct_message);
     }
     else{
-        std::string incorrect_message = "Incorrect!"; 
+        std::string incorrect_message = "Incorrect!";
         send_response(incorrect_message);
     }
 }
@@ -309,23 +310,20 @@ bool Server::index_valid(int index){
         return true;
     }
 }
- 
 
 void Server::read_in_questions(){
     //in file the contents are stored in the order q_num\n, ans\n, q_tag\n, q_text\n., q_choice\n.\n.
     std::ifstream file ("questions.txt");
-    
+
     if(!file.is_open())
         return;
 
 
-    std::stringstream stream;
-
-    
+    //std::stringstream stream;
 
     //Question(question_num, question_tag, question_text, question_choices, correct_answer)
     std::string tmp;
-    while(getline(file, tmp)){    
+    while(getline(file, tmp)){
 
         int question_num;
 
@@ -337,9 +335,9 @@ void Server::read_in_questions(){
         std::vector<std::string> question_choices;
 
         char correct_answer;
-        
+
         char delim = '.';
-        
+
         //get question number
 
         //getline(file, tmp);
@@ -355,7 +353,6 @@ void Server::read_in_questions(){
         //std::cout << "tag: " <<question_tag << std::endl;
         //get question text
         getline(file, question_text, delim);
-        
         question_text.erase(question_text.length()- 1, 1);
         //std::cout << "text: " <<question_text << std::endl;
 
