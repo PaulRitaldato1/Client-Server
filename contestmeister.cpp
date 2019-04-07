@@ -1,4 +1,4 @@
-#include "client.h"
+#include "contestmeister.h"
 int Contestmeister::socket_init(const char* hostname, const char* port){
     //create socket
     _socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -46,32 +46,41 @@ int Contestmeister::resolve_hostname(const char* hostname, const char* port, std
     return 0;
 }
 
-int Contestmeister::parse_input(filename){
+int Contestmeister::parse_input(std::string filename){
 
-    std::string commands;
-    std::istream input;
     if(!filename.empty()){
         //read from file
-        input = std::ifstream f(filename);
-        //commands = std::string( (std::istreambuf_iterator _iterator<char>(f)), (std::istreambuf_iterator<char>()));
+        std::ifstream f(filename);
+        command_control(f);
     }
-    else{
-        input = std::cin;
-    }
+    command_control(std::cin);
+}
 
+int Contestmeister::command_control(std::istream& stream){
+    bool file = true;
     bool run_client = true;
+
+    if(&stream == &std::cin)
+        file = false;
+
+    std::cout << "file is " << file << std::endl;
     while(run_client){
-        char command = 0;
+        std::string command = "";
         std::cout << "> ";
-        std::cin >> command;
-        switch(command){
+        getline(stream,command);
+        if(command.empty()){
+            if(file)
+                return 1;
+            continue;
+        }
+        switch(command.at(0)){
         case 'k':
             if (kill() == -1)
                 run_client = false;
             run_client = false;
             break;
         case 'p':
-            if(put_q() == -1)
+            if(put_q(stream, command) == -1)
                 run_client = false;
             break;
         case 'q' :
@@ -82,35 +91,35 @@ int Contestmeister::parse_input(filename){
             help();
             break;
         case 'd' :
-            if(delete_q() == -1)
+            if(delete_q(command) == -1)
                 run_client = false;
             break;
         case 'g' :
-            if(get() == -1)
+            if(get(command) == -1)
                 run_client = false;
             break;
         case 'r' :
-            if(random() == -1)
+            if(random(stream) == -1)
                 run_client = false;
             break;
         case 'c' :
-            if(check_answer() == -1)
+            if(check_answer(command) == -1)
                 run_client = false;
             break;
         case 's':
-            if(set_contest())
+            if(set_contest(command))
                 run_client = false;
         case 'a':
-            if(add_question())
+            if(add_question(command))
                 run_client = false;
         case 'b':
-            if(begin_contest())
+            if(begin_contest(command))
                 run_client = false;
         case 'l':
             if(list_contests())
                 run_client = false;
         default :
-            continue;
+            break;
         }
     }
     return 1;
@@ -122,21 +131,30 @@ int Contestmeister::list_contests(){
         return -1;
     read_response();
 }
-int Contestmeister::being_contest(){
-    std::string command = "b";
-    std::string c_num;
-    std::cin >> c_num;
 
+int Contestmeister::begin_contest(std::string message){
+    std::string command = "b";
+    std::string delim = "\n";
+    message.erase(0,2);
+    int pos = 0;
+    pos = message.find(delim);
+
+    std::string c_num = message.substr(0,pos);
 
     if (send_response(command + " " + c_num))
         return -1;
     read_response();
 }
-int Contestmeister::add_question(){
+int Contestmeister::add_question(std::string message){
     std::string command = "a";
-    std::string c_num, q_num;
-    std::cin >> c_num;
-    std::cin >> q_num;
+    message.erase(0,2);
+    std::string delim = " ";
+    int pos = message.find(delim);
+    std::string c_num = message.substr(0, pos);
+    message.erase(0, pos + delim.length());
+    delim = "\n";
+    pos = message.find(delim);
+    std::string q_num = message.substr(0, pos);
 
     if (send_response(command + " " + c_num + " " + q_num))
         return -1;
@@ -144,10 +162,10 @@ int Contestmeister::add_question(){
     read_response();
 }
 
-int Contestmeister::set_contest(){
+int Contestmeister::set_contest(std::string message){
     std::string command = "s";
-    std::string number;
-    std::cin >> number;
+    message.erase(0, 2);
+    std::string number = message.substr(0, message.find("\n"));
     if(send_response(command + " " + number))
         return -1;
     read_response();
@@ -164,12 +182,13 @@ int Contestmeister::kill(){
     return send_response(command);
 }
 
-int Contestmeister::check_answer(){
+int Contestmeister::check_answer(std::string message){
     std::string command = "c";
-    std::string number;
-    std::cin >> number;
-    std::string ans;
-    std::cin >> ans;
+    message.erase(0, 2);
+    int pos = message.find(" ");
+    std::string number = message.substr(0, pos);
+    message.erase(0, pos + " ".length());
+    std::string ans = message.substr(0, message.find("\n"));
 
     std::string s = command + " " + number + " " + ans;
     if(send_response(s) == -1)
@@ -177,14 +196,14 @@ int Contestmeister::check_answer(){
     read_response();
 }
 
-int Contestmeister::random(){
+int Contestmeister::random(std::istream& stream){
     std::string command = "r";
     if(send_response(command) == -1)
         return -1;
     read_response();
     std::string choice;
     std::cout << "answer is: ";
-    std::cin >> choice;
+    stream >> choice;
     if(choice.at(0) >= 'a' && choice.at(0) <= 'd'){
         if(send_response(choice) == -1)
             return -1;
@@ -195,38 +214,38 @@ int Contestmeister::random(){
     read_response();
 }
 
-int Contestmeister::get(){
+int Contestmeister::get(std::string message){
     std::string command = "g";
-    std::string number = "";
-    std::cin >> number;
+    message.erase(0,2);
+    std::string number = message.substr(0, message.find("\n"));
     std::string s = command + " " + number;
     if(send_response(s) == -1)
         return -1;
     read_response();
 }
 
-int Contestmeister::delete_q(){
+int Contestmeister::delete_q(std::string message){
     std::string command = "d";
-    std::string number = "";
-    std::cin >> number;
+    message.erase(0,2);
+    std::string number = message.substr(0, message.find("\n"));
     std::string s = command + " " + number;
     if(send_response(s) == -1)
         return -1;
     read_response();
 }
 
-int Contestmeister::put_q(){
+int Contestmeister::put_q(std::istream& stream, std::string message){
     std::cout << "put a question in the bank" << std::endl;
     std::string tag;
-    getline(std::cin, tag);
+    getline(message, tag);
     std::string text = "";
-    getline(std::cin, text, '.');
+    getline(stream, text, '.');
     text.erase(text.length()-1, 1);
     std::string tmp, choices;
     std::cout << "Choice: ";
     int i;
     for(i = 0; i != 5; ++i){
-        getline(std::cin, tmp, '.');
+        getline(stream, tmp, '.');
         if(tmp.size() == 1 || tmp.size() == 2)
             break;
         tmp.back() = '.';
@@ -238,7 +257,7 @@ int Contestmeister::put_q(){
         return 0;
     }
     std::string answer;
-    std::cin >> answer;
+    stream >> answer;
     std::string result = "p%";
     result += tag;
     result += text + "%";

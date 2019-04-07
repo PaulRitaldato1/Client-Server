@@ -50,7 +50,7 @@ class Server{
         void get_rand_question();
         bool index_valid(int index);
         void check_answer(char* msg);
-        int assign_val();
+        //        int assign_val();
         int index_of(int num);
 
         //protocol commands

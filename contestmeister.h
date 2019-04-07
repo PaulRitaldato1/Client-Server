@@ -1,3 +1,4 @@
+#pragma once
 /* C networking headers */
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +22,7 @@ class Contestmeister{
 
     public:
         int connecting();
-        int parse_input(filename);
+        int parse_input(std::string filename);
         void close_connection();
         int socket_init(const char* hostname, const char* port);
     private:
@@ -29,17 +30,18 @@ class Contestmeister{
         struct sockaddr_in address, serv_addr;
 
         int resolve_hostname(const char* hostname, const char* port,std::string& ip);
-        void help(std::istream& stream);
-        int kill(std::istream& stream);
-        int check_answer(std::istream& stream);
+        void help();
+        int kill();
+        int check_answer(std::string message);
         int random(std::istream& stream);
-        int get(std::istream& stream);
-        int delete_q(std::istream& stream);
-        int put_q(std::istream& stream);
-        int set_contest(std::istream& stream);
-        int add_question(std::istream& stream);
-        int begin_contest(std::istream& stream);
-        int list_contests(std::istream& stream);
+        int get(std::string message);
+        int delete_q(std::string message);
+        int put_q(std::istream& stream, std::string message);
+        int set_contest(std::string message);
+        int add_question(std::string message);
+        int begin_contest(std::string message);
+        int list_contests();
+        int command_control(std::istream& stream);
 
         void read_response();
         int send_response(std::string s);

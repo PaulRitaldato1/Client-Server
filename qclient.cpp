@@ -1,5 +1,5 @@
 
-#include"client.h"
+#include"contestmeister.h"
 
 int main(int argc, const char* argv[]){
   std::string filename = "";
@@ -9,11 +9,11 @@ int main(int argc, const char* argv[]){
 		return -1;
 	}
   else if(argc > 3){
-    filename = arg[3]
+      filename = argv[3];
   }
 
   Contestmeister cm;
-	if(client.socket_init(argv[1], argv[2]) == -1)
+	if(cm.socket_init(argv[1], argv[2]) == -1)
 		return 0;
 
 	cm.connecting();

@@ -159,12 +159,12 @@ void Server::create_question(char* msg){
     int pos = 0;
     pos = message.find(delim);
     int question_num = std::stoi(message.substr(0, pos));
-    message.erase(0, pos + delim.length())
+    message.erase(0, pos + delim.length());
 
-        //this function returns -1 if it couldnt find the value. This is used to test if the question already exists
-        if(index_of(question_num) != -1){
-            send_response("Error: question number " + std::to_string(quesiton_num) + " already used")
-                }
+    //this function returns -1 if it couldnt find the value. This is used to test if the question already exists
+    if(index_of(question_num) != -1){
+        send_response("Error: question number " + std::to_string(question_num) + " already used");
+    }
 
     pos = message.find(delim);
     std::string question_tag = message.substr(0, pos);
