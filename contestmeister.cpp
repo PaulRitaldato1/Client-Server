@@ -133,40 +133,40 @@ int Contestmeister::list_contests(){
 }
 
 int Contestmeister::begin_contest(std::string message){
-    std::string command = "b";
-    std::string delim = "\n";
-    message.erase(0,2);
-    int pos = 0;
-    pos = message.find(delim);
+    //    std::string command = "b";
+    //    std::string delim = "\n";
+    //    message.erase(0,2);
+    //    int pos = 0;
+    //    pos = message.find(delim);
+    //
+    //    std::string c_num = message.substr(0,pos);
 
-    std::string c_num = message.substr(0,pos);
-
-    if (send_response(command + " " + c_num))
+    if (send_response(message))
         return -1;
     read_response();
 }
 int Contestmeister::add_question(std::string message){
-    std::string command = "a";
-    message.erase(0,2);
-    std::string delim = " ";
-    int pos = message.find(delim);
-    std::string c_num = message.substr(0, pos);
-    message.erase(0, pos + delim.length());
-    delim = "\n";
-    pos = message.find(delim);
-    std::string q_num = message.substr(0, pos);
+    //    std::string command = "a";
+    //    message.erase(0,2);
+    //    std::string delim = " ";
+    //    int pos = message.find(delim);
+    //    std::string c_num = message.substr(0, pos);
+    //    message.erase(0, pos + delim.length());
+    //    delim = "\n";
+    //    pos = message.find(delim);
+    //    std::string q_num = message.substr(0, pos);
 
-    if (send_response(command + " " + c_num + " " + q_num))
+    if (send_response(message))
         return -1;
 
     read_response();
 }
 
 int Contestmeister::set_contest(std::string message){
-    std::string command = "s";
-    message.erase(0, 2);
-    std::string number = message.substr(0, message.find("\n"));
-    if(send_response(command + " " + number))
+    // std::string command = "s";
+    // message.erase(0, 2);
+    // std::string number = message.substr(0, message.find("\n"));
+    if(send_response(message))
         return -1;
     read_response();
 }
@@ -183,15 +183,15 @@ int Contestmeister::kill(){
 }
 
 int Contestmeister::check_answer(std::string message){
-    std::string command = "c";
-    message.erase(0, 2);
-    int pos = message.find(" ");
-    std::string number = message.substr(0, pos);
-    message.erase(0, pos + " ".length());
-    std::string ans = message.substr(0, message.find("\n"));
+    //std::string command = "c";
+    //message.erase(0, 2);
+    //int pos = message.find(" ");
+    //std::string number = message.substr(0, pos);
+    //message.erase(0, pos + " ".length());
+    //std::string ans = message.substr(0, message.find("\n"));
 
-    std::string s = command + " " + number + " " + ans;
-    if(send_response(s) == -1)
+    //std::string s = command + " " + number + " " + ans;
+    if(send_response(message) == -1)
         return -1;
     read_response();
 }
@@ -202,7 +202,7 @@ int Contestmeister::random(std::istream& stream){
         return -1;
     read_response();
     std::string choice;
-    std::cout << "answer is: ";
+    std::cout << "What is your answer choice: ";
     stream >> choice;
     if(choice.at(0) >= 'a' && choice.at(0) <= 'd'){
         if(send_response(choice) == -1)
@@ -215,21 +215,21 @@ int Contestmeister::random(std::istream& stream){
 }
 
 int Contestmeister::get(std::string message){
-    std::string command = "g";
-    message.erase(0,2);
-    std::string number = message.substr(0, message.find("\n"));
-    std::string s = command + " " + number;
-    if(send_response(s) == -1)
+    //std::string command = "g";
+    //message.erase(0,2);
+    //std::string number = message.substr(0, message.find("\n"));
+    //std::string s = command + " " + number;
+    if(send_response(message) == -1)
         return -1;
     read_response();
 }
 
 int Contestmeister::delete_q(std::string message){
-    std::string command = "d";
-    message.erase(0,2);
-    std::string number = message.substr(0, message.find("\n"));
-    std::string s = command + " " + number;
-    if(send_response(s) == -1)
+    //std::string command = "d";
+    //message.erase(0,2);
+    //std::string number = message.substr(0, message.find("\n"));
+    //std::string s = command + " " + number;
+    if(send_response(message) == -1)
         return -1;
     read_response();
 }
