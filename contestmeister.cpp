@@ -28,7 +28,7 @@ int Contestmeister::connecting(){
         printf("Connection Failed!");
         return -1;
     }
-    read_response();
+    yoink();
 }
 
 void Contestmeister::close_connection(){
@@ -63,7 +63,6 @@ int Contestmeister::command_control(std::istream& stream){
     if(&stream == &std::cin)
         file = false;
 
-    std::cout << "file is " << file << std::endl;
     while(run_client){
         std::string command = "";
         std::cout << "> ";
@@ -127,9 +126,9 @@ int Contestmeister::command_control(std::istream& stream){
 
 int Contestmeister::list_contests(){
     std::string command = "l";
-    if (send_response(command))
+    if (yeet(command))
         return -1;
-    read_response();
+    yoink();
 }
 
 int Contestmeister::begin_contest(std::string message){
@@ -141,9 +140,9 @@ int Contestmeister::begin_contest(std::string message){
     //
     //    std::string c_num = message.substr(0,pos);
 
-    if (send_response(message))
+    if (yeet(message))
         return -1;
-    read_response();
+    yoink();
 }
 int Contestmeister::add_question(std::string message){
     //    std::string command = "a";
@@ -156,19 +155,19 @@ int Contestmeister::add_question(std::string message){
     //    pos = message.find(delim);
     //    std::string q_num = message.substr(0, pos);
 
-    if (send_response(message))
+    if (yeet(message))
         return -1;
 
-    read_response();
+    yoink();
 }
 
 int Contestmeister::set_contest(std::string message){
     // std::string command = "s";
     // message.erase(0, 2);
     // std::string number = message.substr(0, message.find("\n"));
-    if(send_response(message))
+    if(yeet(message))
         return -1;
-    read_response();
+    yoink();
 }
 
 void Contestmeister::help(){
@@ -179,7 +178,7 @@ void Contestmeister::help(){
 int Contestmeister::kill(){
     //send kill message
     std::string command = "k";
-    return send_response(command);
+    return yeet(command);
 }
 
 int Contestmeister::check_answer(std::string message){
@@ -191,27 +190,27 @@ int Contestmeister::check_answer(std::string message){
     //std::string ans = message.substr(0, message.find("\n"));
 
     //std::string s = command + " " + number + " " + ans;
-    if(send_response(message) == -1)
+    if(yeet(message) == -1)
         return -1;
-    read_response();
+    yoink();
 }
 
 int Contestmeister::random(std::istream& stream){
     std::string command = "r";
-    if(send_response(command) == -1)
+    if(yeet(command) == -1)
         return -1;
-    read_response();
+    yoink();
     std::string choice;
     std::cout << "What is your answer choice: ";
     stream >> choice;
     if(choice.at(0) >= 'a' && choice.at(0) <= 'd'){
-        if(send_response(choice) == -1)
+        if(yeet(choice) == -1)
             return -1;
     }
     else{
         std::cout << "Invalid input, try any char a,b,c,d" << std::endl;
     }
-    read_response();
+    yoink();
 }
 
 int Contestmeister::get(std::string message){
@@ -219,9 +218,9 @@ int Contestmeister::get(std::string message){
     //message.erase(0,2);
     //std::string number = message.substr(0, message.find("\n"));
     //std::string s = command + " " + number;
-    if(send_response(message) == -1)
+    if(yeet(message) == -1)
         return -1;
-    read_response();
+    yoink();
 }
 
 int Contestmeister::delete_q(std::string message){
@@ -229,15 +228,18 @@ int Contestmeister::delete_q(std::string message){
     //message.erase(0,2);
     //std::string number = message.substr(0, message.find("\n"));
     //std::string s = command + " " + number;
-    if(send_response(message) == -1)
+    if(yeet(message) == -1)
         return -1;
-    read_response();
+    yoink();
 }
 
 int Contestmeister::put_q(std::istream& stream, std::string message){
     std::cout << "put a question in the bank" << std::endl;
+    message.erase(0,2);
     std::string tag;
-    getline(message, tag);
+    std::istringstream tempstream(message);
+    getline(tempstream, tag, ' ');
+    std::cout << tag << std::endl;
     std::string text = "";
     getline(stream, text, '.');
     text.erase(text.length()-1, 1);
@@ -263,12 +265,12 @@ int Contestmeister::put_q(std::istream& stream, std::string message){
     result += text + "%";
     result += choices + "%";
     result += answer + "%";
-    //std::cout << result;
-    send_response(result);
-    read_response();
+    std::cout << result;
+    yeet(result);
+    yoink();
 }
 
-void Contestmeister::read_response(){
+void Contestmeister::yoink(){
 
     uint32_t length;
     read(_socket, &length, sizeof(uint32_t));
@@ -283,7 +285,7 @@ void Contestmeister::read_response(){
     delete [] msg;
 }
 
-int Contestmeister::send_response(std::string s){
+int Contestmeister::yeet(std::string s){
     uint32_t length = htonl(s.length());
     send(_socket, &length, sizeof(uint32_t), 0);
     return send(_socket, s.c_str(), s.length(), 0);

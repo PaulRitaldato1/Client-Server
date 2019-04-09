@@ -1,4 +1,4 @@
-
+#pragma once
 /* C networking headers */
 #include <stdlib.h>
 #include <string.h>
@@ -7,16 +7,16 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include<stdio.h>
+#include <stdio.h>
 /* end C networking headers */
 
 /* C++ headers */
-#include<iostream>
-#include<vector>
+#include <iostream>
+#include <vector>
 #include "question.h"
 #include <stdexcept>
 #include <fstream>
-#include<sstream>
+#include <sstream>
 #include <algorithm>
 /* end C++ headers */
 
@@ -54,8 +54,8 @@ class Server{
         int index_of(int num);
 
         //protocol commands
-        std::string read_response();
-        int send_response(std::string s);
+        int yeet(std::string s);
+        std::string yoink();
 };
 
 

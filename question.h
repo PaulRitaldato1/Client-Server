@@ -1,3 +1,4 @@
+#pragma once
 #include<iostream>
 #include<fstream>
 #include<string>
@@ -12,7 +13,6 @@ class Question{
         inline ~Question(){ delete this; }
         //write out question to file
         int write_out(bool first);
-        
         std::string to_string_rand(); //returns string that can be presented to client
         std::string to_string_get(); //returns string that can be presented to client
         inline bool check_answer(char ans){ return ans == _correct_answer; }

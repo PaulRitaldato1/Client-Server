@@ -8,3 +8,25 @@ fasdfasf?
 (b) asdfad
 .
 .
+1
+a
+1Daniel?%(a) asdfsa.(b) sadfasd.%a%
+1Daniel?
+.
+(a) asdfsa
+.
+(b) sadfasd
+.
+.
+2
+c
+2Daniel?%(a) is awesome.(b) has curly hair.(c) needs help on malware.%c%
+2Daniel?
+.
+(a) is awesome
+.
+(b) has curly hair
+.
+(c) needs help on malware
+.
+.

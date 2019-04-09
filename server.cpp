@@ -68,7 +68,7 @@ bool Server::listening(){
     }
     else{
         std::string s= "Connected!";
-        send_response(s);
+        yeet(s);
         return true;
     }
 
@@ -97,6 +97,9 @@ bool Server::parse_input(){
 
     //the first byte in the message will be the command
     char command = msg[0];
+    if (!command){
+        return true;
+    }
     //switch statement to handle commands
     switch(command){
     case 'k' :
@@ -123,13 +126,10 @@ bool Server::parse_input(){
         delete [] msg;
         return true;
     case 's':
-
+        return true;
     default:
-        std::string error = "Invalid command";
-        uint32_t length = htonl(error.length());
-        send(_connected_socket, &length, sizeof(uint32_t), 0);
-        send(_connected_socket, error.c_str(), strlen(error.c_str()), 0);
-        delete [] msg;
+        std::cout << "message in server: " << command <<std::endl;
+        yeet("Invalid Command!");
         return true;
 
     }
@@ -163,7 +163,7 @@ void Server::create_question(char* msg){
 
     //this function returns -1 if it couldnt find the value. This is used to test if the question already exists
     if(index_of(question_num) != -1){
-        send_response("Error: question number " + std::to_string(question_num) + " already used");
+        yeet("Error: question number " + std::to_string(question_num) + " already used");
     }
 
     pos = message.find(delim);
@@ -181,7 +181,7 @@ void Server::create_question(char* msg){
 
     pos = message.find(delim);
     std::string correct_answer = message.substr(0, pos);
-    send_response("Question " + std::to_string(question_num) + " added");
+    yeet("Question " + std::to_string(question_num) + " added");
 
 
     std::vector<std::string> question_choices;
@@ -224,12 +224,12 @@ void Server::delete_question(char* msg){
     int index = index_of(q_num);
     if(index == -1){
         std::string error = "Question " + std::to_string(q_num) + " does not exist!";
-        send_response(error);
+        yeet(error);
         return;
     }
     _questions.erase(_questions.begin() + index);
     std::string error = "Deleted Question " + std::to_string(q_num);
-    send_response(error);
+    yeet(error);
 }
 
 void Server::get_question(char* msg){
@@ -241,13 +241,13 @@ void Server::get_question(char* msg){
     int index = index_of(q_num);
     if(index == -1){
         std::string error = "Error: Question " + std::to_string(q_num) + " not found";
-        send_response(error);
+        yeet(error);
         return;
     }
 
     std::string question = _questions[index]->to_string_get();
 
-    send_response(question);
+    yeet(question);
 }
 
 void Server::get_rand_question(){
@@ -256,18 +256,18 @@ void Server::get_rand_question(){
     int index = index_of(rand_index);
     std::string question = _questions[rand_index]->to_string_rand();
 
-    send_response(question);
+    yeet(question);
 
     //wait for answer
-    std::string ans = read_response();
+    std::string ans = yoink();
 
     if(_questions[rand_index]->check_answer(ans.at(0))){
         std::string correct_message = "Correct!";
-        send_response(correct_message);
+        yeet(correct_message);
     }
     else{
         std::string incorrect_message = "Incorrect!";
-        send_response(incorrect_message);
+        yeet(incorrect_message);
     }
 
 }
@@ -285,7 +285,7 @@ void Server::check_answer(char* msg){
     int index = index_of(q_num);
     if (index == -1){
         std::string error = "Error: Question " + std::to_string(q_num) + " not found!";
-        send_response(error);
+        yeet(error);
         return;
     }
 
@@ -294,11 +294,11 @@ void Server::check_answer(char* msg){
 
     if(_questions[index]->check_answer(ans)){
         std::string correct_message = "Correct!";
-        send_response(correct_message);
+        yeet(correct_message);
     }
     else{
         std::string incorrect_message = "Incorrect!";
-        send_response(incorrect_message);
+        yeet(incorrect_message);
     }
 }
 
@@ -374,7 +374,7 @@ void Server::read_in_questions(){
 
     }
 }
-std::string Server::read_response(){
+std::string Server::yoink(){
 
     uint32_t length;
     read(_connected_socket, &length, sizeof(uint32_t));
@@ -390,7 +390,7 @@ std::string Server::read_response(){
     return rtn;
 }
 
-int Server::send_response(std::string s){
+int Server::yeet(std::string s){
     uint32_t length = htonl(s.length());
     send(_connected_socket, &length, sizeof(uint32_t), 0);
     return send(_connected_socket, s.c_str(), s.length(), 0);

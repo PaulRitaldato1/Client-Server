@@ -16,6 +16,7 @@
 #include "question.h"
 #include <stdexcept>
 #include <fstream>
+#include <sstream>
 /* end C++ headers */
 
 class Contestmeister{
@@ -43,6 +44,6 @@ class Contestmeister{
         int list_contests();
         int command_control(std::istream& stream);
 
-        void read_response();
-        int send_response(std::string s);
+        void yoink();
+        int yeet(std::string s);
 };
