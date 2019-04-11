@@ -1,11 +1,9 @@
 #include "server.h"
 
 int main(int argc, const char* argv[]){
-	
 	Server server;
 	bool server_online = true;
 	bool connection_alive = false;
-	
 	while (server_online){
 		try{
 
@@ -19,7 +17,6 @@ int main(int argc, const char* argv[]){
 		}
 
 		while(connection_alive){
-			
 			try {
 
 				//this function will return false if the kill command 'k' is given, which will then terminate the server completely

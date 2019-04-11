@@ -118,7 +118,7 @@ bool Server::parse_input(){
         delete [] msg;
         return true;
     case 'r' :
-        get_rand_question();
+        review();
         delete [] msg;
         return true;
     case 'c' :
@@ -126,15 +126,52 @@ bool Server::parse_input(){
         delete [] msg;
         return true;
     case 's':
+        set_contest(msg);
+        delete [] msg;
+        return true;
+    case 'a':
+        add_q_contest(msg);
+        delete [] msg;
+        return true;
+    case 'b':
+        begin_contest(msg);
+        delete [] msg;
+        return true;
+    case 'l':
+        list_contests(msg);
+        delete [] msg;
         return true;
     default:
-        std::cout << "message in server: " << command <<std::endl;
         yeet("Invalid Command!");
+        delete [] msg;
         return true;
 
     }
 }
 
+void set_contest(char* msg){
+    std::string message(msg);
+    message.erase(0,2);
+
+    uint8_t c_num = (uint8_t)std::stoi(message);
+
+    _contests.push_back(_questions, c_num);
+    if(index_of_contest(c_num) != -1){
+        yeet("Error: Contest " + std::string(c_num) + " already exists");
+        return;
+    }
+    yeet("Contest " + std::string(c_num) + " is set";
+
+}
+void add_q_contest(char* msg){
+
+}
+void begin_contest(char* msg){
+
+}
+void list_contests(char* msg){
+
+}
 void Server::close_connection(){
     close(_connected_socket);
 }
@@ -153,14 +190,13 @@ void Server::close_connection(){
 //}
 
 void Server::create_question(char* msg){
-    std::string delim = "\n";
+    std::string delim = "%";
     std::string message(msg);
     message.erase(0, 2);
     int pos = 0;
     pos = message.find(delim);
     int question_num = std::stoi(message.substr(0, pos));
     message.erase(0, pos + delim.length());
-
     //this function returns -1 if it couldnt find the value. This is used to test if the question already exists
     if(index_of(question_num) != -1){
         yeet("Error: question number " + std::to_string(question_num) + " already used");
@@ -181,7 +217,6 @@ void Server::create_question(char* msg){
 
     pos = message.find(delim);
     std::string correct_answer = message.substr(0, pos);
-    yeet("Question " + std::to_string(question_num) + " added");
 
 
     std::vector<std::string> question_choices;
@@ -203,12 +238,21 @@ void Server::create_question(char* msg){
 
     }
     _questions.push_back( new Question(question_num, question_tag, question_text, question_choices, correct_answer.at(0)));
+    yeet("Question " + std::to_string(question_num) + " added");
 }
 
 int Server::index_of(int num){
 
     for(int i = 0; i != _questions.size(); ++i){
         if(num == _questions[i]->get_question_num())
+            return i;
+    }
+    return -1;
+}
+
+int Server::index_of_contest(int num){
+    for(int i = 0; i != _contests){
+        if(num == _contests[i]->get_contest_num())
             return i;
     }
     return -1;
@@ -250,27 +294,43 @@ void Server::get_question(char* msg){
     yeet(question);
 }
 
-void Server::get_rand_question(){
+void Server::review(char* msg){
+    std::string message(msg);
+    message.erase(0,2);
 
-    int rand_index = rand() % _questions.size();
-    int index = index_of(rand_index);
-    std::string question = _questions[rand_index]->to_string_rand();
-
-    yeet(question);
-
-    //wait for answer
-    std::string ans = yoink();
-
-    if(_questions[rand_index]->check_answer(ans.at(0))){
-        std::string correct_message = "Correct!";
-        yeet(correct_message);
+    int c_num = std::stoi(message);
+    int index = index_of_contest(c_num);
+    if(index < 0){
+        std::string error = "Error: Contest " + std::to_string(q_num) + " not found";
+        yeet(error);
+        return;
     }
-    else{
-        std::string incorrect_message = "Incorrect!";
-        yeet(incorrect_message);
-    }
+
+    std::string analytics = _contests[i]->evaluate_contest();
+    yeet(analytics);
 
 }
+//void Server::get_rand_question(){
+//
+//    int rand_index = rand() % _questions.size();
+//    int index = index_of(rand_index);
+//    std::string question = _questions[rand_index]->to_string_rand();
+//
+//    yeet(question);
+//
+//    //wait for answer
+//    std::string ans = yoink();
+//
+//    if(_questions[rand_index]->check_answer(ans.at(0))){
+//        std::string correct_message = "Correct!";
+//        yeet(correct_message);
+//    }
+//    else{
+//        std::string incorrect_message = "Incorrect!";
+//        yeet(incorrect_message);
+//    }
+//
+//}
 
 void Server::check_answer(char* msg){
 

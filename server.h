@@ -1,26 +1,7 @@
 #pragma once
-/* C networking headers */
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <stdio.h>
-/* end C networking headers */
 
-/* C++ headers */
-#include <iostream>
-#include <vector>
-#include "question.h"
-#include <stdexcept>
-#include <fstream>
-#include <sstream>
-#include <algorithm>
-/* end C++ headers */
-
-
+#include "core.h"
+#include "contest.h"
 
 class Server{
 
@@ -35,6 +16,7 @@ class Server{
         int _socket;
         int _connected_socket;
         std::vector<Question*> _questions;
+        std::vector<Contest*> _contests;
 
         struct sockaddr_in address;
 
@@ -47,12 +29,17 @@ class Server{
         void create_question(char* msg);
         void delete_question(char* msg);
         void get_question(char* msg);
-        void get_rand_question();
+        void review();
+        // void get_rand_question();
         bool index_valid(int index);
         void check_answer(char* msg);
+        void set_contest(char* msg);
+        void add_q_contest(char* msg);
+        void begin_contest(char* msg);
+        void list_contests(char* msg);
         //        int assign_val();
         int index_of(int num);
-
+        int index_of_contest(int num);
         //protocol commands
         int yeet(std::string s);
         std::string yoink();

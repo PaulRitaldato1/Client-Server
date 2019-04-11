@@ -65,7 +65,9 @@ int Contestmeister::command_control(std::istream& stream){
 
     while(run_client){
         std::string command = "";
-        std::cout << "> ";
+        if(file = false)
+            std::cin.clear();
+        std::cout << "\r> ";
         getline(stream,command);
         if(command.empty()){
             if(file)
@@ -106,16 +108,16 @@ int Contestmeister::command_control(std::istream& stream){
                 run_client = false;
             break;
         case 's':
-            if(set_contest(command))
+            if(set_contest(command) == -1)
                 run_client = false;
         case 'a':
-            if(add_question(command))
+            if(add_question(command) == -1)
                 run_client = false;
         case 'b':
-            if(begin_contest(command))
+            if(begin_contest(command) == -1)
                 run_client = false;
         case 'l':
-            if(list_contests())
+            if(list_contests() == -1)
                 run_client = false;
         default :
             break;
@@ -132,13 +134,6 @@ int Contestmeister::list_contests(){
 }
 
 int Contestmeister::begin_contest(std::string message){
-    //    std::string command = "b";
-    //    std::string delim = "\n";
-    //    message.erase(0,2);
-    //    int pos = 0;
-    //    pos = message.find(delim);
-    //
-    //    std::string c_num = message.substr(0,pos);
 
     if (yeet(message))
         return -1;
@@ -237,10 +232,11 @@ int Contestmeister::put_q(std::istream& stream, std::string message){
     std::cout << "put a question in the bank" << std::endl;
     message.erase(0,2);
     std::string tag;
+    std::string q_num;
     std::istringstream tempstream(message);
-    getline(tempstream, tag, ' ');
-    std::cout << tag << std::endl;
+    getline(tempstream, q_num, ' ');
     std::string text = "";
+    getline(stream, tag);
     getline(stream, text, '.');
     text.erase(text.length()-1, 1);
     std::string tmp, choices;
@@ -261,11 +257,12 @@ int Contestmeister::put_q(std::istream& stream, std::string message){
     std::string answer;
     stream >> answer;
     std::string result = "p%";
-    result += tag;
+    result += q_num + "%";
+    result += tag + "%";
     result += text + "%";
     result += choices + "%";
     result += answer + "%";
-    std::cout << result;
+    //std::cout << result;
     yeet(result);
     yoink();
 }

@@ -18,15 +18,27 @@ a
 (b) sadfasd
 .
 .
+3
+c
+asdf
+asdf?
+.
+(a) asdf
+.
+(b) asdf
+.
+(c) sadfs
+.
+.
 2
 c
-2Daniel?%(a) is awesome.(b) has curly hair.(c) needs help on malware.%c%
-2Daniel?
+asdfsadf
+asdfasfd?
 .
-(a) is awesome
+(a) adsfasd
 .
-(b) has curly hair
+(b) adsfasd
 .
-(c) needs help on malware
+(c) asdfas
 .
 .
