@@ -20,4 +20,13 @@
 #include <sstream>
 #include <algorithm>
 #include <thread>
+#include <chrono>
 /* end C++ headers */
+
+#define DBG
+
+#ifdef DBG
+#define DEBUG(x) std::cout << x << std::endl;
+#else
+#define DEBUG(x)
+#endif

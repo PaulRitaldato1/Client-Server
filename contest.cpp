@@ -61,6 +61,50 @@ void Contest::begin_contest(){
 
     if(listen(master_socket, 3) < 0)
         throw std::runtime_error("Contest::begin_contest: Failed to listen on master socket.");
+
+   	std::cout << "Server::listening(): On Port: " << ntohs(address.sin_port) << std::endl;
+    std::cout << "Server::listening(): Hostname: storm.cise.ufl.edu" << std::endl;
+
+    //listen for new connections for 60 seconds
+    std::chrono::stead_clock::timepoint start = std::chrono::steady_clock::now();
+    while(true){
+
+      //stop allowing connections after 60 seconds
+      if(std::chrono::steady_clock::now() - start > std::chrono::seconds(60)){
+        DEBUG("Done listening for connections");
+        break;
+      }
+      //clear socket set
+      FD_ZERO(&fds);
+
+      //add master socket to the socket set
+      FD_SET(master_socket, &fds);
+
+      max_sd = master_socket;
+
+      for (int i = 0; i != contestants.size(); ++i){
+        sd = contestants[i];
+
+        FD_SET(sd, &fds);
+        if(sd > max_sd)
+          max_sd = s;
+      }
+
+      activity = select(max_sd + 1, &fds, NULL, NULL, NULL);
+      if(FD_ISSET(master_socket, &fds)){
+        if((new_socket = accept(master_socket, (struct sockaddr*)& address, (socklen_t*)&addrlen)) < 0){
+          std::cerr << "Contest::begin_contest: Failed to accept connection." << std::endl;
+        }
+
+        //add new socket to contestants
+        contestants.push_back(new_socket);
+      }
+
+    }
 }
 
+//No longer listening for contestants
+close(master_socket);
+
+//runing contest with the curernt contestants
 
