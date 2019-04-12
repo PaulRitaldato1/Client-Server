@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sys/time.h>
 /* end C networking headers */
 
 /* C++ headers */

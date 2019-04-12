@@ -67,7 +67,7 @@ bool Server::listening(){
         throw std::runtime_error("Server::listen(): Failed to accept connection.");
     }
     else{
-        std::string s= "Connected!";
+        std::string s = "Connected!";
         yeet(s);
         return true;
     }
@@ -155,22 +155,51 @@ void set_contest(char* msg){
 
     uint8_t c_num = (uint8_t)std::stoi(message);
 
-    _contests.push_back(_questions, c_num);
+    _contests.push_back(new Contest(c_num));
     if(index_of_contest(c_num) != -1){
         yeet("Error: Contest " + std::string(c_num) + " already exists");
         return;
     }
-    yeet("Contest " + std::string(c_num) + " is set";
+    yeet("Contest " + std::string(c_num) + " is set");
 
 }
+
 void add_q_contest(char* msg){
-
+    std::string message(msg);
+    message.erase(0,2);
+    unsigned int pos = message.find(" ");
+    unsigned int c_num = std::stoi(message.substr(0, pos));
+    c_index = index_of_contest(c_num);
+    if(c_index < 0){
+        yeet("Error: Contest " + std:string(c_num) + " does not exist!");
+        return;
+    }
+    message.erase(0, pos + " ".size());
+    pos = message.find(" ");
+    unsigned int q_num = std::stoi(message.find(0,pos));
+    q_index = index_of(q_num);
+    if(q_index < 0){
+        yeet("Error: Question number " + std::string(q_num) + " does not exist!");
+        return;
+    }
+    _contests[c_index].add_question(_questions[q_index]);
 }
+
 void begin_contest(char* msg){
-
+    std::string message(msg);
+    message.erase(0,2);
+    int c_num = std:stoi(message);
+    if(index_of_contest(c_num) < 0){
+        yeet("Error: Contest " + std::string(c_num) + " does not exist");
+        return;
+    }
+    _contests[c_num].run_contest();
 }
-void list_contests(char* msg){
 
+void list_contests(char* msg){
+    for (int i = 0; i != _contests.size(); ++i){
+        _contests[i].list_contest;
+    }
 }
 void Server::close_connection(){
     close(_connected_socket);
