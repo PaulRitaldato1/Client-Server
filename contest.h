@@ -27,6 +27,12 @@ class Contest{
     void list_contest();
     std::string evaluate_contest();
 
+    struct Contestant{
+        std::string nickname;
+        int sock;
+        std::string answer;
+        bool correct;
+    };
 
     int yeet(std::string message, int socket);
     int yoink(int socket);

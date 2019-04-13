@@ -29,10 +29,11 @@ void Contest::run_contest(){
 }
 
 //THIS FUNCTION IS DESIGNED TO RUN ON ITS OWN THREAD, IT REPRESENTS AN "ACTIVE" CONTEST
+//its also a mess, i know, but i ran out of time
 void Contest::begin_contest(){
     int new_socket, activity, sd, max_sd;
     fd_set fds;
-    std::vector<int> contestants;
+    std::vector<Contestant*> contestants;
     /* ======================================= Set up master Socket ===============================*/
     int master_socket = socket(AF_INET, SOCK_STREAM, 0);
     if( master_socket < 0){
@@ -69,42 +70,105 @@ void Contest::begin_contest(){
     std::chrono::stead_clock::timepoint start = std::chrono::steady_clock::now();
     while(true){
 
-      //stop allowing connections after 60 seconds
-      if(std::chrono::steady_clock::now() - start > std::chrono::seconds(60)){
-        DEBUG("Done listening for connections");
-        break;
-      }
-      //clear socket set
-      FD_ZERO(&fds);
+        //stop allowing connections after 60 seconds
+        if(std::chrono::steady_clock::now() - start > std::chrono::seconds(60)){
+            DEBUG("Done listening for connections");
+            break;
+        }
+        //clear socket set
+        FD_ZERO(&fds);
 
-      //add master socket to the socket set
-      FD_SET(master_socket, &fds);
+        //add master socket to the socket set
+        FD_SET(master_socket, &fds);
 
-      max_sd = master_socket;
+        max_sd = master_socket;
 
-      for (int i = 0; i != contestants.size(); ++i){
-        sd = contestants[i];
+        for (int i = 0; i != contestants.size(); ++i){
+            sd = contestants[i];
 
-        FD_SET(sd, &fds);
-        if(sd > max_sd)
-          max_sd = s;
-      }
-
-      activity = select(max_sd + 1, &fds, NULL, NULL, NULL);
-      if(FD_ISSET(master_socket, &fds)){
-        if((new_socket = accept(master_socket, (struct sockaddr*)& address, (socklen_t*)&addrlen)) < 0){
-          std::cerr << "Contest::begin_contest: Failed to accept connection." << std::endl;
+            FD_SET(sd, &fds);
+            if(sd > max_sd)
+                max_sd = s;
         }
 
-        //add new socket to contestants
-        contestants.push_back(new_socket);
-      }
+        activity = select(max_sd + 1, &fds, NULL, NULL, NULL);
+        if(FD_ISSET(master_socket, &fds)){
+            if((new_socket = accept(master_socket, (struct sockaddr*)& address, (socklen_t*)&addrlen)) < 0){
+                std::cerr << "Contest::begin_contest: Failed to accept connection." << std::endl;
+            }
+
+            //add new socket to contestants
+            Contestant tmp = new Contestant();
+            tmp->sock = new_socket;
+            contestants.push_back(tmp);
+        }
 
     }
+
+    if(contestants.size() == 0){
+        DEBUG("No contestants connected after 60 seconds, terminating..");
+        return;
+    }
+    //No longer listening for contestants
+    //close(master_socket);
+
+    //runing contest with the curernt contestants
+    //get contestant names
+    std::vector<bool> bitmap;
+
+
+    for (int i = 0; i != contestants.size(); ++i){
+        bitmap.push_back(false);
+    }
+
+    //lambdas used to play the game
+    auto AllResponded = [&bitmap](){ for (auto is_set : bitmap)
+            if(is_set == false)
+                return false;
+            return true;
+    };
+    auto sendAll = [](std::vector<Contestant*>& peeps, std::string& msg){ for( auto peep : peeps) yeet(msg, peep->sock); };
+    sendAll(contestants, "Please enter a nickname: ");
+    /* TODO accept nicknames */
+
+    //main contest loop
+    for(int question = 0; question != _contest_questions.size(); ++question){
+        sendAll(contestants, _contest_questions[question]->to_string_get());
+        activity = select(max_sd + 1, &fds, NULL, NULL, NULL);
+        while(!allResponded()){
+            for(int i = 0; i != contestants.size(); ++i){
+                if(FD_ISSET(contestants[i]->sock, &fds) && bitmap[i] == false){
+                    contestants[i]->answer = yoink(contestants[i]->sock);
+                    bitmap[i] = true;
+                }
+            }
+            /* TODO check answers */
+            /* TODO calc and send statistics back */
+            /* TODO reset bitmap, responses, and "correct" in contestants */
+        }
+    }
+    /* TODO update total stats for contest? (maybe after contest is over) */
 }
 
-//No longer listening for contestants
-close(master_socket);
 
-//runing contest with the curernt contestants
+std::string Server::yoink(int socket){
 
+    uint32_t length;
+    read(socket, &length, sizeof(uint32_t));
+    length = ntohl(length);
+    //extract the size, create a buffer the appropriate size
+    int size = length;
+    char* msg;
+    msg = new(std::nothrow) char[size + 1]();
+    read(socket, msg, size);
+    msg[size] = '\0';
+    std::string rtn(msg);
+    delete [] msg;
+    return rtn;
+}
+
+int Server::yeet(std::string s, int socket){
+    uint32_t length = htonl(s.length());
+    send(socket, &length, sizeof(uint32_t), 0);
+    return send(socket, s.c_str(), s.length(), 0);
+}
