@@ -30,7 +30,7 @@ class Contest{
     struct Contestant{
         std::string nickname;
         int sock;
-        std::string answer;
+        char answer;
         bool correct;
     };
 

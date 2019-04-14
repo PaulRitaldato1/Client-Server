@@ -122,7 +122,20 @@ void Contest::begin_contest(){
     }
 
     //lambdas used to play the game
-    auto AllResponded = [&bitmap](){ for (auto is_set : bitmap)
+    auto checkAnswers = [&contestants, &_contest_questions](int q_num){ for(auto contestant : contestants) 
+        if(contestant->answer == _contest_questions[q_num].get_answer()) 
+            contestant->correct = true;
+        else
+            contestant->correct = false;
+        
+        };
+    auto reset = [&bitmap, &contestants]()mutable{ for (int i = 0; i != bitmap.size(); ++i) {
+            bitmap[i] = false;
+            contestants[i]->correct = false;
+            contestants[i]->answer = 0;
+            } 
+        };
+    auto allResponded = [&bitmap](){ for (auto is_set : bitmap)
             if(is_set == false)
                 return false;
             return true;
@@ -132,6 +145,7 @@ void Contest::begin_contest(){
     /* TODO accept nicknames */
 
     //main contest loop
+    int tmp_max_correct = 0;
     for(int question = 0; question != _contest_questions.size(); ++question){
         sendAll(contestants, _contest_questions[question]->to_string_get());
         activity = select(max_sd + 1, &fds, NULL, NULL, NULL);
@@ -142,16 +156,29 @@ void Contest::begin_contest(){
                     bitmap[i] = true;
                 }
             }
-            /* TODO check answers */
-            /* TODO calc and send statistics back */
-            /* TODO reset bitmap, responses, and "correct" in contestants */
+
         }
+        /* TODO check answers */
+        checkAnswers(question);
+        /* TODO calc and send statistics back */
+        //calc stats
+        double per_q_percent = 0.0;
+        int tmp = 0;
+        for (int i = 0; i != contestants.size(); ++i){
+            if(contestants[i]->correct){
+                ++tmp;
+                contestants[i]->num_correct = contestants[i]->num_correct+1;
+            }
+        }
+        per_q_percent = ((double)tmp/(double)contestants.size()) * 100;
+        /* TODO reset bitmap, responses, and "correct" in contestants */
+        reset();
     }
     /* TODO update total stats for contest? (maybe after contest is over) */
 }
 
 
-std::string Server::yoink(int socket){
+std::string Contest::yoink(int socket){
 
     uint32_t length;
     read(socket, &length, sizeof(uint32_t));
@@ -167,7 +194,7 @@ std::string Server::yoink(int socket){
     return rtn;
 }
 
-int Server::yeet(std::string s, int socket){
+int Contest::yeet(std::string s, int socket){
     uint32_t length = htonl(s.length());
     send(socket, &length, sizeof(uint32_t), 0);
     return send(socket, s.c_str(), s.length(), 0);
