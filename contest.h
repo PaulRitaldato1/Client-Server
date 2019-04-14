@@ -32,6 +32,7 @@ class Contest{
         int sock;
         char answer;
         bool correct;
+        int num_correct;
     };
 
     int yeet(std::string message, int socket);
