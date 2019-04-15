@@ -8,9 +8,7 @@ std::string Question::to_string_rand(){
     rtn_str += _question_text;
     rtn_str += "\n";
 
-    
     for(int i = 0; i != _question_choices.size(); ++i){
-    
         rtn_str += _question_choices[i];
         rtn_str += "\n";
 
@@ -28,9 +26,7 @@ std::string Question::to_string_get(){
     rtn_str += "\n";
     rtn_str += _question_text;
     rtn_str += "\n";
-    
     for(int i = 0; i != _question_choices.size(); ++i){
-    
         rtn_str += _question_choices[i];
         rtn_str += "\n";
 
@@ -49,7 +45,6 @@ int Question::write_out(bool first){
         out_str.erase(0, 1);
         std::ofstream file;
         file.open("questions.txt");
-    
         if(!file.is_open())
             return -1;
 
@@ -59,15 +54,12 @@ int Question::write_out(bool first){
     else{
         std::ofstream file;
         file.open("questions.txt", std::ios_base::app);
-    
         if(!file.is_open())
             return -1;
 
         file << out_str;
         file.close();
     }
-    
-    
     return 1;
 }
 
@@ -86,7 +78,6 @@ std::string Question::to_string_IO(){
     rtn_str += "\n";
     rtn_str += _question_text;
     rtn_str += "\n.";
-    
     for(int i = 0; i != _question_choices.size(); ++i){
         rtn_str += "\n";
         rtn_str += _question_choices[i];
@@ -98,5 +89,4 @@ std::string Question::to_string_IO(){
     s += rtn_str;
 
     return s;
-
 }

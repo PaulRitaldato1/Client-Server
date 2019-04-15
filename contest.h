@@ -4,9 +4,16 @@
 
 class Contest{
  public:
- Contest(uint8_t contest_num) : contest_num(contest_num);
 
+ Contest(uint8_t contest_num) : contest_num(contest_num) {};
+    Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<int> q_nums, std::vector<Question*>& all_questions);
     inline uint8_t get_contest_num(){ return contest_num; }
+    void run_contest();
+    bool add_question(Question* question);
+    void begin_contest();
+    void list_contest();
+    std::string evaluate_contest();
+    void write_out();
  private:
     uint8_t contest_num;
     std::vector<Question*> _contest_questions;
@@ -21,11 +28,6 @@ class Contest{
     //int _master_socket, _new_connect;
     //struct sockaddr_in address;
 
-    void run_contest();
-    void begin_contest();
-    bool add_question(Question* question);
-    void list_contest();
-    std::string evaluate_contest();
 
     struct Contestant{
         std::string nickname;
@@ -36,5 +38,5 @@ class Contest{
     };
 
     int yeet(std::string message, int socket);
-    int yoink(int socket);
+    std::string yoink(int socket);
 };

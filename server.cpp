@@ -118,7 +118,7 @@ bool Server::parse_input(){
         delete [] msg;
         return true;
     case 'r' :
-        review();
+        review(msg);
         delete [] msg;
         return true;
     case 'c' :
@@ -149,7 +149,7 @@ bool Server::parse_input(){
     }
 }
 
-void set_contest(char* msg){
+void Server::set_contest(char* msg){
     std::string message(msg);
     message.erase(0,2);
 
@@ -157,48 +157,48 @@ void set_contest(char* msg){
 
     _contests.push_back(new Contest(c_num));
     if(index_of_contest(c_num) != -1){
-        yeet("Error: Contest " + std::string(c_num) + " already exists");
+        yeet("Error: Contest " + std::to_string(c_num) + " already exists");
         return;
     }
-    yeet("Contest " + std::string(c_num) + " is set");
+    yeet("Contest " + std::to_string(c_num) + " is set");
 
 }
 
-void add_q_contest(char* msg){
+void Server::add_q_contest(char* msg){
     std::string message(msg);
     message.erase(0,2);
     unsigned int pos = message.find(" ");
     unsigned int c_num = std::stoi(message.substr(0, pos));
-    c_index = index_of_contest(c_num);
+    int c_index = index_of_contest(c_num);
     if(c_index < 0){
-        yeet("Error: Contest " + std:string(c_num) + " does not exist!");
+        yeet("Error: Contest " + std::to_string(c_num) + " does not exist!");
         return;
     }
-    message.erase(0, pos + " ".size());
+    message.erase(0, pos + 1);
     pos = message.find(" ");
-    unsigned int q_num = std::stoi(message.find(0,pos));
-    q_index = index_of(q_num);
+    unsigned int q_num = std::stoi(message.substr(0,pos));
+    int q_index = index_of(q_num);
     if(q_index < 0){
-        yeet("Error: Question number " + std::string(q_num) + " does not exist!");
+        yeet("Error: Question number " + std::to_string(q_num) + " does not exist!");
         return;
     }
-    _contests[c_index].add_question(_questions[q_index]);
+    _contests[c_index]->add_question(_questions[q_index]);
 }
 
-void begin_contest(char* msg){
+void Server::begin_contest(char* msg){
     std::string message(msg);
     message.erase(0,2);
-    int c_num = std:stoi(message);
+    int c_num = std::stoi(message);
     if(index_of_contest(c_num) < 0){
-        yeet("Error: Contest " + std::string(c_num) + " does not exist");
+        yeet("Error: Contest " + std::to_string(c_num) + " does not exist");
         return;
     }
-    _contests[c_num].run_contest();
+    _contests[c_num]->run_contest();
 }
 
-void list_contests(char* msg){
+void Server::list_contests(char* msg){
     for (int i = 0; i != _contests.size(); ++i){
-        _contests[i].list_contest;
+        _contests[i]->list_contest();
     }
 }
 void Server::close_connection(){
@@ -280,7 +280,7 @@ int Server::index_of(int num){
 }
 
 int Server::index_of_contest(int num){
-    for(int i = 0; i != _contests){
+    for(int i = 0; i != _contests.size(); ++i){
         if(num == _contests[i]->get_contest_num())
             return i;
     }
@@ -330,12 +330,12 @@ void Server::review(char* msg){
     int c_num = std::stoi(message);
     int index = index_of_contest(c_num);
     if(index < 0){
-        std::string error = "Error: Contest " + std::to_string(q_num) + " not found";
+        std::string error = "Error: Contest " + std::to_string(c_num) + " not found";
         yeet(error);
         return;
     }
 
-    std::string analytics = _contests[i]->evaluate_contest();
+    std::string analytics = _contests[index]->evaluate_contest();
     yeet(analytics);
 
 }

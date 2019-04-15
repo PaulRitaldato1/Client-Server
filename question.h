@@ -21,7 +21,7 @@ class Question{
         inline std::string get_question_tag() { return _question_tag; }
         inline std::string get_question_text() { return _question_text; }
         inline std::vector<std::string> get_question_choices() { return _question_choices; }
-        inline char get_answer(){ return _correct_answer};
+        inline char get_answer(){ return _correct_answer;};
 
     private:
 

@@ -29,7 +29,7 @@ class Server{
         void create_question(char* msg);
         void delete_question(char* msg);
         void get_question(char* msg);
-        void review();
+        void review(char* msg);
         // void get_rand_question();
         bool index_valid(int index);
         void check_answer(char* msg);
