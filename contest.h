@@ -11,7 +11,7 @@ class Contest{
     void run_contest();
     bool add_question(Question* question);
     void begin_contest();
-    void list_contest();
+    std::string list_contest();
     std::string evaluate_contest();
     void write_out();
  private:

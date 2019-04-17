@@ -133,6 +133,7 @@ void Server::set_contest(std::string message){
 
     DEBUG("Got here");
     _contests.push_back(new Contest(c_num));
+    DEBUG("Made the new contest");
     if(index_of_contest(c_num) != -1){
         yeet("Error: Contest " + std::to_string(c_num) + " already exists");
         return;
@@ -176,10 +177,12 @@ void Server::begin_contest(std::string message){
 }
 
 void Server::list_contests(std::string message){
-    if(_contests.size() <= 0)
+    if(_contests.size() <= 0){
+        yeet("No Contests!");
         return;
+    }
     for (int i = 0; i != _contests.size(); ++i){
-        _contests[i]->list_contest();
+        yeet(_contests[i]->list_contest());
     }
 }
 void Server::close_connection(){

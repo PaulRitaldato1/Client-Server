@@ -114,15 +114,19 @@ int Contestmeister::command_control(std::istream& stream){
             std::cout << "In s" << std::endl;
             if(set_contest(command) == -1)
                 run_client = false;
+            break;
         case 'a':
             if(add_question(command) == -1)
                 run_client = false;
+            break;
         case 'b':
             if(begin_contest(command) == -1)
                 run_client = false;
+            break;
         case 'l':
             if(list_contests(command) == -1)
                 run_client = false;
+            break;
         default :
             break;
         }
@@ -290,7 +294,7 @@ void Contestmeister::yoink(){
     msg = new(std::nothrow) char[size + 1]();
     msg[size] = '\0';
     read(_socket, msg, size);
-    std::cout << msg << std::endl;
+    std::cout << "Message from yoink in cm: " << msg << std::endl;
     delete [] msg;
 }
 

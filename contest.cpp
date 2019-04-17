@@ -21,7 +21,7 @@ bool Contest::add_question(Question* question){
     total_questions = _contest_questions.size();
 }
 
-void Contest::list_contest(){
+std::string Contest::list_contest(){
     std::string run_or_not = "";
     std::string totalq = std::to_string(total_questions);
     std::string c_num = std::to_string(contest_num);
@@ -36,7 +36,7 @@ void Contest::list_contest(){
     result += run_or_not + ", ";
     result += "average correct: " + std::to_string(average_correct) + ";";
     result += "maximum correct: " + std::to_string(max_correct);
-    std::cout << result << std::endl;
+    return result;
 }
 
 void Contest::run_contest(){
