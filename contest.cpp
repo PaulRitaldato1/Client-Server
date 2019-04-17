@@ -40,7 +40,8 @@ void Contest::list_contest(){
 }
 
 void Contest::run_contest(){
-    std::thread(begin_contest()).detach();
+    std::thread t1 = std::thread(&Contest::begin_contest, this);
+    t1.detach();
 }
 
 //THIS FUNCTION IS DESIGNED TO RUN ON ITS OWN THREAD, IT REPRESENTS AN "ACTIVE" CONTEST
@@ -83,7 +84,7 @@ void Contest::begin_contest(){
     std::cout << "Contest::begin_contest(): Hostname: storm.cise.ufl.edu" << std::endl;
 
     //listen for new connections for 60 seconds
-    std::chrono::steady_clock::timepoint start = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     while(true){
 
         //stop allowing connections after 60 seconds
@@ -138,7 +139,7 @@ void Contest::begin_contest(){
     }
 
     //lambdas used to play the game
-    auto checkAnswers = [&contestants, &this](int q_num){ for(auto contestant : contestants)
+    auto checkAnswers = [&contestants, this](int q_num){ for(auto contestant : contestants)
         if(contestant->answer == _contest_questions[q_num]->get_answer())
             contestant->correct = true;
         else
@@ -156,7 +157,7 @@ void Contest::begin_contest(){
                 return false;
         return true;
     };
-    auto sendAll = [](std::vector<Contestant*>& peeps, std::string& msg){ for( auto peep : peeps) yeet(msg, peep->sock); };
+    auto sendAll = [this](std::vector<Contestant*>& peeps, std::string msg){ for( auto peep : peeps) yeet(msg, peep->sock); };
     auto checkNickname = [&contestants](std::string& nickname){
         for(int i = 0; i != contestants.size(); ++i){
             if(contestants[i]->nickname == nickname)
@@ -191,7 +192,7 @@ void Contest::begin_contest(){
         while(!allResponded()){
             for(int i = 0; i != contestants.size(); ++i){
                 if(FD_ISSET(contestants[i]->sock, &fds) && bitmap[i] == false){
-                    contestants[i]->answer = yoink(contestants[i]->sock);
+                    contestants[i]->answer = yoink(contestants[i]->sock).at(0);
                     bitmap[i] = true;
                 }
             }
@@ -203,9 +204,11 @@ void Contest::begin_contest(){
         //calc stats
         double per_q_percent = 0.0;
         int top_score = 0;
+        int tmp = 0;
         for (int i = 0; i != contestants.size(); ++i){
             if(contestants[i]->correct){
                 contestants[i]->num_correct = contestants[i]->num_correct+1;
+                ++tmp;
                 if(contestants[i]->num_correct > top_score)
                     top_score = contestants[i]->num_correct;
             }
@@ -220,7 +223,7 @@ void Contest::begin_contest(){
             else
                 response += "Incorrect. ";
             response += std::to_string(per_q_percent) + " of contestants answered this question correctly.\n";
-            response += "Your score is " + std::to_string(num_correct) + "/" + std::to_string(question) + "." + " The top score is currently " + std::to_string(top_score) + "/" + std::to_string(question) + ".";
+            response += "Your score is " + std::to_string(contestants[i]->num_correct) + "/" + std::to_string(question) + "." + " The top score is currently " + std::to_string(top_score) + "/" + std::to_string(question) + ".";
 
             yeet(response, contestants[i]->sock);
         }
@@ -232,7 +235,7 @@ void Contest::begin_contest(){
     for(int i =0; i != contestants.size(); ++i){
         if(contestants[i]->num_correct > max_correct)
             max_correct = contestants[i]->num_correct;
-        avg_correct += (double)contestants[i]->num_correct/(double)_contest_questions().size();
+        avg_correct += (double)contestants[i]->num_correct/(double)_contest_questions.size();
     }
     avg_correct = (avg_correct/contestants.size())*100;
     average_correct = avg_correct;
@@ -257,7 +260,7 @@ void Contest::write_out(){
     out_str += std::to_string(run) + "%";
     std::ofstream file;
     file.open("contests.txt");
-    if(!file.open()){
+    if(!file.is_open()){
         return;
     }
 

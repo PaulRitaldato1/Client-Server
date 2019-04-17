@@ -4,7 +4,7 @@ CXXFLAGS = -std=c++11
 all: qclient cserver clean
 
 cserver: question.o server.o cserver.o contest.o
-	$(CXX) $(CXXFLAGS) -o cserver question.o server.o cserver.o contest.o
+	$(CXX) $(CXXFLAGS) -o cserver question.o server.o cserver.o contest.o -lpthread
 
 question.o: question.cpp question.h
 	$(CXX) $(CXXFLAGS) -c question.cpp
@@ -23,4 +23,4 @@ contestmeister.o: contestmeister.cpp contestmeister.h
 	$(CXX) $(CXXFLAGS) -c contestmeister.cpp
 
 clean:
-	rm contestmeister.o qclient.o question.o server.o cserver.o
+	rm contestmeister.o qclient.o question.o server.o cserver.o contest.o
