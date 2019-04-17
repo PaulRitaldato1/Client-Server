@@ -301,6 +301,7 @@ void Server::delete_question(std::string message){
     //read the question number to delete
     int q_num = std::stoi(message);
 
+    std::cout << _contests.size() << std::endl;
     int index = index_of(q_num);
     if(index == -1){
         std::string error = "Question " + std::to_string(q_num) + " does not exist!";
@@ -492,7 +493,6 @@ std::string Server::yoink(){
     msg[size] = '\0';
     rtn = std::string(msg);
     delete [] msg;
-
     return rtn;
 }
 

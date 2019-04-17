@@ -298,13 +298,11 @@ void Contestmeister::yoink(){
     char* msg;
     msg = new(std::nothrow) char[size + 1]();
     msg[size] = '\0';
-
-    int read2 = read(_socket, msg, size);
-    if(read2 == 0){
-        DEBUG("CM::yoink: message bytes read was 0");
-        throw new std::runtime_error("asdfadf");
+    int readBytes = read(_socket, msg, size);
+    if(readBytes != size){
+        DEBUG("CM::Yoink wtf bro");
     }
-    std::cout << "Message from yoink in cm: " << msg << std::endl;
+    std::cout << "CM::Yoink: " << msg << std::endl;
     delete [] msg;
 }
 
