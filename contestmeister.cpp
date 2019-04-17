@@ -293,13 +293,16 @@ void Contestmeister::yoink(){
     char* msg;
     msg = new(std::nothrow) char[size + 1]();
     msg[size] = '\0';
-    read(_socket, msg, size);
-    std::cout << "Message from yoink in cm: " << msg << std::endl;
+    int readBytes = read(_socket, msg, size);
+    if(readBytes != size){
+        DEBUG("CM::Yoink wtf bro");
+    }
+    std::cout << "CM::Yoink: " << msg << std::endl;
     delete [] msg;
 }
 
 int Contestmeister::yeet(std::string s){
-    std::cout << "Yeet in client" << std::endl;
+    DEBUG("Yeet in client");
     uint32_t length = htonl(s.length());
     send(_socket, &length, sizeof(uint32_t), 0);
     return send(_socket, s.c_str(), s.length(), 0);

@@ -5,13 +5,17 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <sys/socket.h>
+#include <netdb.h>
 /* end C networking headers */
 
 /* C++ headers */
+#include <cstring>
 #include <iostream>
 #include <vector>
 #include "question.h"

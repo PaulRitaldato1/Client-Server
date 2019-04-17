@@ -279,6 +279,7 @@ void Server::delete_question(std::string message){
     //read the question number to delete
     int q_num = std::stoi(message);
 
+    std::cout << _contests.size() << std::endl;
     int index = index_of(q_num);
     if(index == -1){
         std::string error = "Question " + std::to_string(q_num) + " does not exist!";
@@ -448,6 +449,9 @@ void Server::read_in_questions(){
     }
 }
 std::string Server::yoink(){
+    //fd_set set;
+    //FD_ZERO(&set);
+    //FD_SET(_connected_socket, &set);
     uint32_t length;
     int readBytes = read(_connected_socket, &length, sizeof(uint32_t));
     length = ntohl(length);
@@ -455,15 +459,26 @@ std::string Server::yoink(){
     int size = length;
     char* msg;
     msg = new(std::nothrow) char[size + 1]();
-    read(_connected_socket, msg, size);
+    readBytes = read(_connected_socket, msg, size);
     msg[size] = '\0';
     std::string rtn(msg);
     delete [] msg;
+    //struct timeval tv = {1, 0};
+    //int activity = select(_connected_socket + 1, &set, NULL, NULL, &tv);
+    //if (activity != 0 ){
+     //   char* waste = new char[100];
+      //  read(_connected_socket, waste, 100);
+       // delete [] waste;
+    //}
+    if(length != readBytes)
+        DEBUG("What the fuck bro");
     return rtn;
 }
 
 int Server::yeet(std::string s){
     uint32_t length = htonl(s.length());
     send(_connected_socket, &length, sizeof(uint32_t), 0);
-    return send(_connected_socket, s.c_str(), s.length(), 0);
+    DEBUG("Server::Yeeting: " + s);
+    int i = send(_connected_socket, s.c_str(), length, 0);
+    return i;
 }

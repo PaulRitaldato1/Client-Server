@@ -21,7 +21,7 @@ int main(int argc, const char* argv[]){
 
                 //this function will return false if the kill command 'k' is given, which will then terminate the server completely
                 bool parse_out = server.parse_input();
-                DEBUG(parse_out);
+                DEBUG("parse out: " + std::to_string(parse_out));
                 if(!parse_out){
                     DEBUG("inside if");
                     connection_alive = false;
