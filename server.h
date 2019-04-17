@@ -26,17 +26,17 @@ class Server{
         void read_in_questions();
 
         //handling commands
-        void create_question(char* msg);
-        void delete_question(char* msg);
-        void get_question(char* msg);
-        void review(char* msg);
+        void create_question(std::string message);
+        void delete_question(std::string message);
+        void get_question(std::string message);
+        void review(std::string message);
         // void get_rand_question();
         bool index_valid(int index);
-        void check_answer(char* msg);
-        void set_contest(char* msg);
-        void add_q_contest(char* msg);
-        void begin_contest(char* msg);
-        void list_contests(char* msg);
+        void check_answer(std::string message);
+        void set_contest(std::string message);
+        void add_q_contest(std::string message);
+        void begin_contest(std::string message);
+        void list_contests(std::string message);
         //        int assign_val();
         int index_of(int num);
         int index_of_contest(int num);

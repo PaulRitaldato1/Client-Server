@@ -76,85 +76,62 @@ bool Server::listening(){
 
 bool Server::parse_input(){
 
-    char* incoming_size = 0;
-    int read_bytes = 0;
-
-    //The first byte sent will be a number representing how many bytes the incoming message will be
-    uint32_t length;
-    int res = read(_connected_socket, &length, sizeof(uint32_t));
-    if(res == 0){
-        return false;
+    std::string msg = yoink();
+    DEBUG("Message server side: " + msg);
+    if(msg.size() <= 0){
+        DEBUG("Empty message");
+        return true;
     }
-    length = ntohl(length);
-    //extract the size, create a buffer the appropriate size
-    int size = length;
-    char* msg;
-    msg = new(std::nothrow) char[size + 1];
-    msg[size] = '\0';
-
-    //read the message
-    read_bytes = read(_connected_socket, msg, size);
-
     //the first byte in the message will be the command
-    char command = msg[0];
+    char command = msg.at(0);
     if (!command){
         return true;
     }
     //switch statement to handle commands
     switch(command){
     case 'k' :
-        delete [] msg;
         throw std::runtime_error("Connection close by kill command");
     case 'p' :
         create_question(msg);
-        delete [] msg;
         return true;
     case 'd' :
         delete_question(msg);
-        delete [] msg;
         return true;
     case 'g' :
         get_question(msg);
-        delete [] msg;
         return true;
     case 'r' :
         review(msg);
-        delete [] msg;
         return true;
     case 'c' :
         check_answer(msg);
-        delete [] msg;
         return true;
     case 's':
         set_contest(msg);
-        delete [] msg;
         return true;
     case 'a':
         add_q_contest(msg);
-        delete [] msg;
         return true;
     case 'b':
         begin_contest(msg);
-        delete [] msg;
         return true;
     case 'l':
         list_contests(msg);
-        delete [] msg;
         return true;
     default:
         yeet("Invalid Command!");
-        delete [] msg;
         return true;
 
     }
+    DEBUG("Some how made it here");
 }
 
-void Server::set_contest(char* msg){
-    std::string message(msg);
+void Server::set_contest(std::string message){
     message.erase(0,2);
 
     uint8_t c_num = (uint8_t)std::stoi(message);
 
+    DEBUG("Got here");
     _contests.push_back(new Contest(c_num));
     if(index_of_contest(c_num) != -1){
         yeet("Error: Contest " + std::to_string(c_num) + " already exists");
@@ -164,8 +141,8 @@ void Server::set_contest(char* msg){
 
 }
 
-void Server::add_q_contest(char* msg){
-    std::string message(msg);
+void Server::add_q_contest(std::string message){
+    
     message.erase(0,2);
     unsigned int pos = message.find(" ");
     unsigned int c_num = std::stoi(message.substr(0, pos));
@@ -183,10 +160,11 @@ void Server::add_q_contest(char* msg){
         return;
     }
     _contests[c_index]->add_question(_questions[q_index]);
+    yeet("Question " + std::to_string(q_num) + " added to contest " + std::to_string(c_num));
 }
 
-void Server::begin_contest(char* msg){
-    std::string message(msg);
+void Server::begin_contest(std::string message){
+    
     message.erase(0,2);
     int c_num = std::stoi(message);
     if(index_of_contest(c_num) < 0){
@@ -194,9 +172,12 @@ void Server::begin_contest(char* msg){
         return;
     }
     _contests[c_num]->run_contest();
+    yeet("Contest " + std::to_string(c_num) + " started");
 }
 
-void Server::list_contests(char* msg){
+void Server::list_contests(std::string message){
+    if(_contests.size() <= 0)
+        return;
     for (int i = 0; i != _contests.size(); ++i){
         _contests[i]->list_contest();
     }
@@ -218,9 +199,9 @@ void Server::close_connection(){
 //    return *result + 1;
 //}
 
-void Server::create_question(char* msg){
+void Server::create_question(std::string message){
     std::string delim = "%";
-    std::string message(msg);
+    
     message.erase(0, 2);
     int pos = 0;
     pos = message.find(delim);
@@ -280,6 +261,8 @@ int Server::index_of(int num){
 }
 
 int Server::index_of_contest(int num){
+    if(_contests.size() <= 0)
+        return -1;
     for(int i = 0; i != _contests.size(); ++i){
         if(num == _contests[i]->get_contest_num())
             return i;
@@ -287,8 +270,7 @@ int Server::index_of_contest(int num){
     return -1;
 }
 
-void Server::delete_question(char* msg){
-    std::string message(msg);
+void Server::delete_question(std::string message){
     message.erase(0, 2); //delete the command and following space since we already know it
 
     //read the question number to delete
@@ -305,8 +287,8 @@ void Server::delete_question(char* msg){
     yeet(error);
 }
 
-void Server::get_question(char* msg){
-    std::string message(msg);
+void Server::get_question(std::string message){
+    
     message.erase(0, 2); //delete the command and following space since we already know it
 
     int q_num = std::stoi(message);
@@ -323,8 +305,7 @@ void Server::get_question(char* msg){
     yeet(question);
 }
 
-void Server::review(char* msg){
-    std::string message(msg);
+void Server::review(std::string message){
     message.erase(0,2);
 
     int c_num = std::stoi(message);
@@ -361,9 +342,9 @@ void Server::review(char* msg){
 //
 //}
 
-void Server::check_answer(char* msg){
+void Server::check_answer(std::string message){
 
-    std::string message(msg);
+    
     message.erase(0, 2); //delete the command and following space since we already know it
     std::string delim = " ";
     size_t pos = 0;
@@ -464,9 +445,8 @@ void Server::read_in_questions(){
     }
 }
 std::string Server::yoink(){
-
     uint32_t length;
-    read(_connected_socket, &length, sizeof(uint32_t));
+    int readBytes = read(_connected_socket, &length, sizeof(uint32_t));
     length = ntohl(length);
     //extract the size, create a buffer the appropriate size
     int size = length;
