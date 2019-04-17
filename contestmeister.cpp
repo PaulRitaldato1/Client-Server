@@ -71,10 +71,11 @@ int Contestmeister::command_control(std::istream& stream){
         //    std::cin.clear();
         std::cout << "\r> ";
         getline(stream,command);
+        //std::cin >> command; 
         if(command.empty()){
             if(file)
                 return 1;
-            std::cout << "empty" << std::endl;
+            DEBUG("CM::input: empty command");
             continue;
         }
         switch(command.at(0)){
@@ -111,7 +112,6 @@ int Contestmeister::command_control(std::istream& stream){
                 run_client = false;
             break;
         case 's':
-            std::cout << "In s" << std::endl;
             if(set_contest(command) == -1)
                 run_client = false;
             break;
@@ -136,7 +136,7 @@ int Contestmeister::command_control(std::istream& stream){
 
 int Contestmeister::list_contests(std::string message){
     //std::string command = "l";
-    if (yeet(message))
+    if (yeet(message) == -1)
         return -1;
     yoink();
     return 0;
@@ -144,7 +144,7 @@ int Contestmeister::list_contests(std::string message){
 
 int Contestmeister::begin_contest(std::string message){
 
-    if (yeet(message))
+    if (yeet(message) == -1)
         return -1;
     yoink();
     return 0;
@@ -160,7 +160,7 @@ int Contestmeister::add_question(std::string message){
     //    pos = message.find(delim);
     //    std::string q_num = message.substr(0, pos);
 
-    if (yeet(message))
+    if (yeet(message) == -1)
         return -1;
 
     yoink();
@@ -171,7 +171,8 @@ int Contestmeister::set_contest(std::string message){
     // std::string command = "s";
     // message.erase(0, 2);
     // std::string number = message.substr(0, message.find("\n"));
-    if(yeet(message))
+    int tmp = yeet(message);
+    if(tmp == -1)
         return -1;
     yoink();
     return 0;
@@ -284,22 +285,31 @@ int Contestmeister::put_q(std::istream& stream, std::string message){
 }
 
 void Contestmeister::yoink(){
-
+    DEBUG("CM::yoink called");
     uint32_t length;
-    read(_socket, &length, sizeof(uint32_t));
+    int read1 = read(_socket, &length, sizeof(uint32_t));
+    if(read1 == 0){
+        DEBUG("CM::yoink: size read was 0");
+        throw new std::runtime_error("asdfadf");
+    }
     length = ntohl(length);
     //extract the size, create a buffer the appropriate size
     int size = length;
     char* msg;
     msg = new(std::nothrow) char[size + 1]();
     msg[size] = '\0';
-    read(_socket, msg, size);
+
+    int read2 = read(_socket, msg, size);
+    if(read2 == 0){
+        DEBUG("CM::yoink: message bytes read was 0");
+        throw new std::runtime_error("asdfadf");
+    }
     std::cout << "Message from yoink in cm: " << msg << std::endl;
     delete [] msg;
 }
 
 int Contestmeister::yeet(std::string s){
-    std::cout << "Yeet in client" << std::endl;
+    DEBUG("CM::yeet called");
     uint32_t length = htonl(s.length());
     send(_socket, &length, sizeof(uint32_t), 0);
     return send(_socket, s.c_str(), s.length(), 0);

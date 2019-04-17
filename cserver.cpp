@@ -1,7 +1,10 @@
 #include "server.h"
-
+Server server;
+void my_handler(int s){
+    server.~Server();
+}
 int main(int argc, const char* argv[]){
-    Server server;
+
     bool server_online = true;
     bool connection_alive = false;
     while (server_online){
@@ -21,9 +24,8 @@ int main(int argc, const char* argv[]){
 
                 //this function will return false if the kill command 'k' is given, which will then terminate the server completely
                 bool parse_out = server.parse_input();
-                DEBUG(parse_out);
+                DEBUG("Parse out: " + std::to_string(parse_out));
                 if(!parse_out){
-                    DEBUG("inside if");
                     connection_alive = false;
                     std::cout << "\nClient has closed and/or connection was lost!\nListening for new connections.\n" << std::endl;
                     //server.close_connection();
@@ -36,5 +38,12 @@ int main(int argc, const char* argv[]){
             }
         }
     }
+    struct sigaction sigIntHandler;
+
+    sigIntHandler.sa_handler = my_handler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+
+    sigaction(SIGINT, &sigIntHandler, NULL);
     return 0;
 }

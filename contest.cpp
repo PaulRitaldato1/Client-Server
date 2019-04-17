@@ -42,6 +42,7 @@ std::string Contest::list_contest(){
 void Contest::run_contest(){
     std::thread t1 = std::thread(&Contest::begin_contest, this);
     t1.detach();
+    run = true;
 }
 
 //THIS FUNCTION IS DESIGNED TO RUN ON ITS OWN THREAD, IT REPRESENTS AN "ACTIVE" CONTEST
@@ -68,7 +69,7 @@ void Contest::begin_contest(){
 
     //set address options
     address.sin_family = AF_INET;
-    address.sin_port = htons(0);
+    address.sin_port = 0;
     address.sin_addr.s_addr = INADDR_ANY;
 
     //bind the socket
@@ -88,7 +89,7 @@ void Contest::begin_contest(){
     while(true){
 
         //stop allowing connections after 60 seconds
-        if(std::chrono::steady_clock::now() - start > std::chrono::seconds(60)){
+        if(std::chrono::steady_clock::now() - start > std::chrono::seconds(5)){
             DEBUG("Done listening for connections");
             break;
         }
@@ -107,8 +108,8 @@ void Contest::begin_contest(){
             if(sd > max_sd)
                 max_sd = sd;
         }
-
-        activity = select(max_sd + 1, &fds, NULL, NULL, NULL);
+        struct timeval timeout = {1, 0};
+        activity = select(max_sd + 1, &fds, NULL, NULL, &timeout);
         if(FD_ISSET(master_socket, &fds)){
             if((new_socket = accept(master_socket, (struct sockaddr*)& address, (socklen_t*)&addrlen)) < 0){
                 std::cerr << "Contest::begin_contest: Failed to accept connection." << std::endl;
@@ -183,6 +184,7 @@ void Contest::begin_contest(){
             }
         }
     }
+    reset();
 
     //main contest loop
     int tmp_max_correct = 0;
@@ -269,7 +271,7 @@ void Contest::write_out(){
 }
 
 std::string Contest::evaluate_contest(){
-    std::string eval = std::to_string(total_questions) + " questions, ";
+    std::string eval = std::to_string(contest_num) + "\t"+ std::to_string(total_questions) + " questions, ";
     if(!run){
         eval += "not run";
         return eval;

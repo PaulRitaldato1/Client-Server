@@ -2,6 +2,7 @@
 
 Server::Server(){
     read_in_questions();
+    //read_in_contests();
     socket_init();
 }
 Server::~Server(){
@@ -11,10 +12,17 @@ Server::~Server(){
         for(int i = 0; i != _questions.size(); ++i){
             if(i == 0)
                 _questions[i]->write_out(true);
-            else
-                {
-                    _questions[i]->write_out(false);
+            else{
+                _questions[i]->write_out(false);
                 }
+        }
+    }
+
+    if(_contests.size() == 0)
+        remove("contests.txt");
+    else{
+        for(int i = 0; i != _contests.size(); ++i){
+            _contests[i]->write_out();
         }
     }
     close_connection();
@@ -77,6 +85,10 @@ bool Server::listening(){
 bool Server::parse_input(){
 
     std::string msg = yoink();
+    if (msg == "%.%"){
+        DEBUG("Connection failed for some reason");
+        return false;
+    }
     DEBUG("Message server side: " + msg);
     if(msg.size() <= 0){
         DEBUG("Empty message");
@@ -119,8 +131,7 @@ bool Server::parse_input(){
         list_contests(msg);
         return true;
     default:
-        yeet("Invalid Command!");
-        return true;
+        break;
 
     }
     DEBUG("Some how made it here");
@@ -129,16 +140,16 @@ bool Server::parse_input(){
 void Server::set_contest(std::string message){
     message.erase(0,2);
 
-    uint8_t c_num = (uint8_t)std::stoi(message);
+    int c_num = std::stoi(message);
 
-    DEBUG("Got here");
-    _contests.push_back(new Contest(c_num));
-    DEBUG("Made the new contest");
-    if(index_of_contest(c_num) != -1){
-        yeet("Error: Contest " + std::to_string(c_num) + " already exists");
+    if( index_of_contest(c_num) != -1){
+        std::string error = "Error: Contest " + std::to_string(c_num) + " already exists";
+        yeet(error);
         return;
     }
-    yeet("Contest " + std::to_string(c_num) + " is set");
+    _contests.push_back(new Contest(c_num));
+    std::string return_message = "Contest " + std::to_string(c_num) + " is set";
+    yeet(return_message);
 
 }
 
@@ -149,7 +160,8 @@ void Server::add_q_contest(std::string message){
     unsigned int c_num = std::stoi(message.substr(0, pos));
     int c_index = index_of_contest(c_num);
     if(c_index < 0){
-        yeet("Error: Contest " + std::to_string(c_num) + " does not exist!");
+        std::string error = "Error: Contest " + std::to_string(c_num) + " does not exist!";
+        yeet(error);
         return;
     }
     message.erase(0, pos + 1);
@@ -157,33 +169,43 @@ void Server::add_q_contest(std::string message){
     unsigned int q_num = std::stoi(message.substr(0,pos));
     int q_index = index_of(q_num);
     if(q_index < 0){
-        yeet("Error: Question number " + std::to_string(q_num) + " does not exist!");
+        std::string error = "Error: Contest " + std::to_string(q_num) + " does not exist!";
+        yeet(error);
         return;
     }
     _contests[c_index]->add_question(_questions[q_index]);
-    yeet("Question " + std::to_string(q_num) + " added to contest " + std::to_string(c_num));
+    std::string ret_msg = "Question " + std::to_string(q_num) + " added to contest " + std::to_string(c_num);
+    yeet(ret_msg);
 }
 
 void Server::begin_contest(std::string message){
     
     message.erase(0,2);
     int c_num = std::stoi(message);
-    if(index_of_contest(c_num) < 0){
-        yeet("Error: Contest " + std::to_string(c_num) + " does not exist");
+    int index_of_c = index_of_contest(c_num);
+    if(index_of_c < 0){
+        DEBUG("SERVER::Error: Contest " + std::to_string(c_num) + " does not exist");
+        std::string error = "Error: Contest " + std::to_string(c_num) + " does not exist";
+        yeet(error);
         return;
     }
-    _contests[c_num]->run_contest();
-    yeet("Contest " + std::to_string(c_num) + " started");
+    _contests[index_of_c]->run_contest();
+    std::string ret_msg = "Contest " + std::to_string(c_num) + " started";
+    yeet(ret_msg);
 }
 
 void Server::list_contests(std::string message){
     if(_contests.size() <= 0){
-        yeet("No Contests!");
+        DEBUG("SERVER::No contests");
+        std::string error = "No Contests!";
+        yeet(error);
         return;
     }
+    std::string rtn = "";
     for (int i = 0; i != _contests.size(); ++i){
-        yeet(_contests[i]->list_contest());
+        rtn += _contests[i]->evaluate_contest() + "\n";
     }
+    yeet(rtn);
 }
 void Server::close_connection(){
     close(_connected_socket);
@@ -448,22 +470,44 @@ void Server::read_in_questions(){
     }
 }
 std::string Server::yoink(){
+    DEBUG("server::yoink called");
     uint32_t length;
+    std::string rtn = "";
+
     int readBytes = read(_connected_socket, &length, sizeof(uint32_t));
+    if(readBytes == 0){
+        DEBUG("Server::bytes read for size " + std::to_string(readBytes));
+        return "%.%";
+    }
     length = ntohl(length);
     //extract the size, create a buffer the appropriate size
     int size = length;
     char* msg;
     msg = new(std::nothrow) char[size + 1]();
-    read(_connected_socket, msg, size);
+    readBytes = read(_connected_socket, msg, size);
+    if(readBytes == 0){
+        DEBUG("Server::bytes read for size " + std::to_string(readBytes));
+        return "%.%";
+    }
     msg[size] = '\0';
-    std::string rtn(msg);
+    rtn = std::string(msg);
     delete [] msg;
+
     return rtn;
 }
 
 int Server::yeet(std::string s){
+    DEBUG("Server::yeet called");
     uint32_t length = htonl(s.length());
-    send(_connected_socket, &length, sizeof(uint32_t), 0);
-    return send(_connected_socket, s.c_str(), s.length(), 0);
+    int send1 = send(_connected_socket, &length, sizeof(uint32_t), 0);
+    if(send1 == 0){
+        DEBUG("Server::yeet: size sent was 0");
+        throw new std::runtime_error("asdfadf");
+    }
+    int send2 = send(_connected_socket, s.c_str(), s.length(), 0);
+    if(send2 == 0){
+        DEBUG("Server::yeet: message bytes sent was 0");
+        throw new std::runtime_error("asdfadf");
+    }
+    return send2;
 }

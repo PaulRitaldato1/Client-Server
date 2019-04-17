@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <netdb.h>
+#include <signal.h>
 /* end C networking headers */
 
 /* C++ headers */
