@@ -6,13 +6,13 @@ class Contest{
  public:
 
  Contest(uint8_t contest_num) : contest_num(contest_num) {};
-    Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<Question*>& all_questions);
+    Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<Question*>& all_questions, bool run);
     inline uint8_t get_contest_num(){ return contest_num; }
     void run_contest();
     bool add_question(Question* question);
     std::string list_contest();
     std::string evaluate_contest();
-    void write_out();
+    void write_out(bool first);
     std::string review();
     inline int get_max() {return max_correct;}
     inline double get_average() { return average_correct; }

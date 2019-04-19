@@ -1,9 +1,10 @@
 #include "contest.h"
 
-Contest::Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<Question*>& all_questions){
+Contest::Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<Question*>& all_questions, bool run){
     this->contest_num = contest_num;
     this->average_correct = average_correct;
     this->max_correct = max_correct;
+    this->run = run;
 
     // for(int i = 0; i != q_nums.size(); ++i){
     //     int index = 0;
@@ -277,7 +278,7 @@ void Contest::begin_contest(){
             else
                 response += "Incorrect. ";
             response += std::to_string(per_q_percent) + " of contestants answered this question correctly.\n";
-            response += "Your score is " + std::to_string(contestants[i].num_correct) + "/" + std::to_string(question + 1) + "." + " The top score is currently " + std::to_string(top_score) + "/" + std::to_string(question+1) + ".\n";
+            response += "Your score is " + std::to_string(contestants[i].num_correct) + "/" + std::to_string(question + 1) + "." + " The top score is currently " + std::to_string(top_score) + "/" + std::to_string(question+1) + ".\n\n";
 
             yeet(response, contestants[i].sock);
         }
@@ -309,7 +310,7 @@ void Contest::begin_contest(){
 }
 
 
-void Contest::write_out(){
+void Contest::write_out(bool first){
 
     std::string out_str = "";
     //cotnest, questions, average_correct, max_correct
@@ -324,13 +325,26 @@ void Contest::write_out(){
     int tmp = run;
     out_str += std::to_string(tmp) + "%\n";
     std::ofstream file;
-    file.open("contests.txt");
-    if(!file.is_open()){
+    if(first){
+        file.open("contests.txt");
+            if(!file.is_open()){
+                return;
+            }
+
+        file << out_str;
+        file.close();
         return;
     }
+    else{
+        file.open("contests.txt", std::ios_base::app);
+            if(!file.is_open()){
+                return;
+            }
 
-    file << out_str;
-    file.close();
+        file << out_str;
+        file.close();
+        return;
+    }
 }
 
 std::string Contest::evaluate_contest(){

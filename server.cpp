@@ -22,7 +22,11 @@ Server::~Server(){
         remove("contests.txt");
     else{
         for(int i = 0; i != _contests.size(); ++i){
-            _contests[i]->write_out();
+            if(i == 0)
+                _contests[i]->write_out(true);
+            else{
+                _contests[i]->write_out(false);
+                }
         }
     }
     close_connection();
@@ -535,9 +539,9 @@ void Server::read_in_contests(){
         getline(file, tmp, delim);
         int tmprun = std::stoi(tmp);
         bool run = tmprun;
-        std::cout << "in read in run is " + run << std::endl;
+
     //Contest::Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<int> q_nums, std::vector<Question*>& all_questions){
-        _contests.push_back(new Contest((uint8_t) c_num, avg, max, _questions));
+        _contests.push_back(new Contest((uint8_t) c_num, avg, max, _questions, run));
         
         for(int i = 0; i != q_nums.size(); ++i){
             int q_index = index_of(q_nums[i]);
