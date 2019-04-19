@@ -57,7 +57,15 @@ void Contestant::run_game(){
     std::cout << yoink();
     std::cin >> answer;
     yeet(answer);
+    int test = std::stoi(yoink());
     std::cout << yoink();
+    while(test == 0){
+        std::cout << "\nPlease enter another nickname: ";
+        std::cin >> answer;
+        yeet(answer);
+        test = std::stoi(yoink());
+        std::cout << yoink();
+    }
 
     for(int i = 0; i != num_questions; ++i){
         try{

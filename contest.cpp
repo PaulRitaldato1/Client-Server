@@ -212,6 +212,10 @@ void Contest::begin_contest(){
     while(!allResponded()){
         copy1 = copy;
         //struct timeval timeout = {1, 0};
+         #ifdef DBG
+            for(int a = 0; a != bitmap.size(); a++)
+                DEBUG(bitmap[a]);
+            #endif
         activity = select(max_sd + 1, &copy, NULL, NULL, NULL);
         copy = copy1;
         DEBUG("Made it to after select");
@@ -224,12 +228,15 @@ void Contest::begin_contest(){
                 std::string tmp = yoink(contestants[i].sock);
                 DEBUG("Recieved tmp: " + tmp);
                 if(!checkNickname(tmp)){
-                    yeet("Error: Nickname " + tmp + " is already in use.", contestants[i].sock);
+                    yeet(std::to_string(0), contestants[i].sock);
+                    yeet("Error: Nickname " + tmp + " is already in use.\n", contestants[i].sock);
                 }
                 else{
-                    yeet("\nHello " + tmp + ", get ready for the contest!\n", contestants[i].sock);
+                    yeet(std::to_string(1), contestants[i].sock);
+                    yeet("Hello " + tmp + ", get ready for the contest!\n", contestants[i].sock);
                     contestants[i].nickname = tmp;
                     bitmap[i] = true;
+                    DEBUG("Bitmap at: " + std::to_string(i) + " is: " + std::to_string(bitmap[i]));
                 }
             }
         }
