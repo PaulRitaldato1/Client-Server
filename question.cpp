@@ -3,7 +3,7 @@
 std::string Question::to_string_rand(){
     std::string rtn_str = "";
 
-    rtn_str += std::to_string(_question_num);
+    rtn_str += "Question " + std::to_string(_question_num);
     rtn_str += "\n";
     rtn_str += _question_text;
     rtn_str += "\n";
@@ -11,11 +11,9 @@ std::string Question::to_string_rand(){
     for(int i = 0; i != _question_choices.size(); ++i){
         rtn_str += _question_choices[i];
         rtn_str += "\n";
-
-
     }
-
-    return rtn_str.substr(0, rtn_str.length() - 1);
+    rtn_str += "Enter your choice: ";
+    return rtn_str;
 
 }
 

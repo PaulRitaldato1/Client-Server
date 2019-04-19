@@ -342,7 +342,7 @@ void Server::review(std::string message){
         return;
     }
 
-    std::string analytics = _contests[index]->evaluate_contest();
+    std::string analytics = _contests[index]->review();
     yeet(analytics);
 
 }

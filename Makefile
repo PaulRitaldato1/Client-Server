@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++11
 
-all: contestmeister cserver clean
+all: contestmeister contestant cserver
 
 cserver: question.o server.o cserver.o contest.o
 	$(CXX) $(CXXFLAGS) -o cserver question.o server.o cserver.o contest.o -lpthread
@@ -23,5 +23,14 @@ qclient.o: qclient.cpp contestmeister.h
 contestmeister.o: contestmeister.cpp contestmeister.h
 	$(CXX) $(CXXFLAGS) -c contestmeister.cpp
 
+contestant: contestant.o cclient.o
+	$(CXX) $(CXXFLAGS) -o contestant contestant.o cclient.o
+contestant.o: contestant.cpp contestant.h
+	$(CXX) $(CXXFLAGS) -c contestant.cpp
+cclient.o: cclient.cpp
+	$(CXX) $(CXXFLAGS) -c cclient.cpp
+
+
+.PHONY: clean
 clean:
-	rm contestmeister.o qclient.o question.o server.o cserver.o contest.o
+	rm contestmeister.o qclient.o question.o server.o cserver.o contest.o contestant.o cclient.o

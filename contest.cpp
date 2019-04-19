@@ -21,6 +21,10 @@ bool Contest::add_question(Question* question){
     total_questions = _contest_questions.size();
 }
 
+std::string Contest::review(){
+    return "temp";
+}
+
 std::string Contest::list_contest(){
     std::string run_or_not = "";
     std::string totalq = std::to_string(total_questions);
@@ -50,8 +54,8 @@ void Contest::run_contest(){
 void Contest::begin_contest(){
     run = true;
     int new_socket, activity, sd, max_sd;
-    fd_set fds;
-    std::vector<Contestant*> contestants;
+    fd_set fds, copy;
+    std::vector<Contestant> contestants;
     /* ======================================= Set up master Socket ===============================*/
     int master_socket = socket(AF_INET, SOCK_STREAM, 0);
     if( master_socket < 0){
@@ -81,30 +85,32 @@ void Contest::begin_contest(){
     if(listen(master_socket, 3) < 0)
         throw std::runtime_error("Contest::begin_contest: Failed to listen on master socket.");
 
-   	std::cout << "Contest::begin_contest(): On Port: " << ntohs(address.sin_port) << std::endl;
-    std::cout << "Contest::begin_contest(): Hostname: storm.cise.ufl.edu" << std::endl;
+    // create scope for these temp variables
+    {
+    struct sockaddr_in new_address;
+    int size = sizeof(new_address);
+    getsockname(master_socket, (struct sockaddr*)&new_address, (socklen_t*) &size);
+   	std::cout << "Contest " << std::to_string(contest_num) << " started on port: " << ntohs(new_address.sin_port) << std::endl;
+    //std::cout << "Contest is on Hostname: storm.cise.ufl.edu" << std::endl;
+    }
 
     //listen for new connections for 60 seconds
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+        
+ 
     while(true){
-
-        //stop allowing connections after 60 seconds
-        if(std::chrono::steady_clock::now() - start > std::chrono::seconds(5)){
-            DEBUG("Done listening for connections");
-            break;
-        }
         //clear socket set
         FD_ZERO(&fds);
 
         //add master socket to the socket set
         FD_SET(master_socket, &fds);
-
+    
         max_sd = master_socket;
-
         for (int i = 0; i != contestants.size(); ++i){
-            sd = contestants[i]->sock;
+            sd = contestants[i].sock;
 
             FD_SET(sd, &fds);
+            copy = fds;
             if(sd > max_sd)
                 max_sd = sd;
         }
@@ -116,15 +122,19 @@ void Contest::begin_contest(){
             }
 
             //add new socket to contestants
-            Contestant* tmp = new Contestant();
-            tmp->sock = new_socket;
+            Contestant tmp;
+            tmp.sock = new_socket;
             contestants.push_back(tmp);
         }
-
+        //stop allowing connections after 60 seconds
+        if(std::chrono::steady_clock::now() - start > std::chrono::seconds(10)){
+            std::cout << "Done listening for connections" << std::endl;
+            break;
+        }
     }
 
     if(contestants.size() == 0){
-        DEBUG("No contestants connected after 60 seconds, terminating..");
+        std::cout << "No contestants connected after 60 seconds, terminating.." << std::endl;
         return;
     }
     //No longer listening for contestants
@@ -140,16 +150,22 @@ void Contest::begin_contest(){
     }
 
     //lambdas used to play the game
-    auto checkAnswers = [&contestants, this](int q_num){ for(auto contestant : contestants)
-        if(contestant->answer == _contest_questions[q_num]->get_answer())
-            contestant->correct = true;
+    auto checkAnswers = [&contestants, this](int q_num)mutable{ 
+        for(int i = 0; i != contestants.size(); ++i){
+        DEBUG(contestants[i].answer);
+        DEBUG(_contest_questions[q_num]->get_answer());
+        if(contestants[i].answer == _contest_questions[q_num]->get_answer()){
+            contestants[i].correct = true;
+            DEBUG("CheckAnswers::contestant.correct: " + std::to_string(contestants[i].correct));
+        }
         else
-            contestant->correct = false;
-        };
+            contestants[i].correct = false;
+        }
+    };
     auto reset = [&bitmap, &contestants]()mutable{ for (int i = 0; i != bitmap.size(); ++i) {
             bitmap[i] = false;
-            contestants[i]->correct = false;
-            contestants[i]->answer = 0;
+            contestants[i].correct = false;
+            contestants[i].answer = 0;
             }
         };
     auto allResponded = [&bitmap](){
@@ -158,27 +174,40 @@ void Contest::begin_contest(){
                 return false;
         return true;
     };
-    auto sendAll = [this](std::vector<Contestant*>& peeps, std::string msg){ for( auto peep : peeps) yeet(msg, peep->sock); };
+    auto sendAll = [this](std::vector<Contestant>& peeps, std::string msg){ for( auto peep : peeps) yeet(msg, peep.sock); };
     auto checkNickname = [&contestants](std::string& nickname){
         for(int i = 0; i != contestants.size(); ++i){
-            if(contestants[i]->nickname == nickname)
+            if(contestants[i].nickname == nickname)
                 return false;
         }
            return true;
     };
 
+    sendAll(contestants, std::to_string(_contest_questions.size()));
     sendAll(contestants, "Please enter a nickname: ");
+    fd_set copy1;
+
     /* TODO accept nicknames */
     while(!allResponded()){
-        activity = select(max_sd + 1, &fds, NULL, NULL, NULL);
+        copy1 = copy;
+        //struct timeval timeout = {1, 0};
+        activity = select(max_sd + 1, &copy, NULL, NULL, NULL);
+        copy = copy1;
+        DEBUG("Made it to after select");
         for(int i = 0; i != contestants.size(); ++i){
-            if(FD_ISSET(contestants[i]->sock, &fds) && bitmap[i] == false){
-                std::string tmp = yoink(contestants[i]->sock);
+            #ifdef DBG
+            if(FD_ISSET(master_socket, &copy))
+                DEBUG("Master socket activity");
+            #endif
+            if(FD_ISSET(contestants[i].sock, &copy) && bitmap[i] == false){
+                std::string tmp = yoink(contestants[i].sock);
+                DEBUG("Recieved tmp: " + tmp);
                 if(!checkNickname(tmp)){
-                    yeet("Error: Nickname " + tmp + " is already in use.", contestants[i]->sock);
+                    yeet("Error: Nickname " + tmp + " is already in use.", contestants[i].sock);
                 }
                 else{
-                    contestants[i]->nickname = tmp;
+                    yeet("\nHello " + tmp + ", get ready for the contest!\n", contestants[i].sock);
+                    contestants[i].nickname = tmp;
                     bitmap[i] = true;
                 }
             }
@@ -188,13 +217,15 @@ void Contest::begin_contest(){
 
     //main contest loop
     int tmp_max_correct = 0;
+    copy = copy1;
     for(int question = 0; question != _contest_questions.size(); ++question){
         sendAll(contestants, _contest_questions[question]->to_string_rand());
-        activity = select(max_sd + 1, &fds, NULL, NULL, NULL);
+        activity = select(max_sd + 1, &copy, NULL, NULL, NULL);
+        copy = copy1;
         while(!allResponded()){
             for(int i = 0; i != contestants.size(); ++i){
-                if(FD_ISSET(contestants[i]->sock, &fds) && bitmap[i] == false){
-                    contestants[i]->answer = yoink(contestants[i]->sock).at(0);
+                if(FD_ISSET(contestants[i].sock, &copy) && bitmap[i] == false){
+                    contestants[i].answer = yoink(contestants[i].sock).at(0);
                     bitmap[i] = true;
                 }
             }
@@ -208,26 +239,27 @@ void Contest::begin_contest(){
         int top_score = 0;
         int tmp = 0;
         for (int i = 0; i != contestants.size(); ++i){
-            if(contestants[i]->correct){
-                contestants[i]->num_correct = contestants[i]->num_correct+1;
+            DEBUG("Contestants correct: " + std::to_string(contestants[i].correct));
+            if(contestants[i].correct){
+                contestants[i].num_correct = contestants[i].num_correct+1;
                 ++tmp;
-                if(contestants[i]->num_correct > top_score)
-                    top_score = contestants[i]->num_correct;
             }
+            if(contestants[i].num_correct > top_score)
+                top_score = contestants[i].num_correct;
         }
 
         //sending responses to each contestant
         per_q_percent = ((double)tmp/(double)contestants.size()) * 100;
         std::string response = "";
         for(int i = 0; i != contestants.size(); ++i){
-            if(contestants[i]->correct)
+            if(contestants[i].correct)
                 response += "Correct. ";
             else
                 response += "Incorrect. ";
             response += std::to_string(per_q_percent) + " of contestants answered this question correctly.\n";
-            response += "Your score is " + std::to_string(contestants[i]->num_correct) + "/" + std::to_string(question) + "." + " The top score is currently " + std::to_string(top_score) + "/" + std::to_string(question) + ".";
+            response += "Your score is " + std::to_string(contestants[i].num_correct) + "/" + std::to_string(question + 1) + "." + " The top score is currently " + std::to_string(top_score) + "/" + std::to_string(question+1) + ".\n";
 
-            yeet(response, contestants[i]->sock);
+            yeet(response, contestants[i].sock);
         }
         /* TODO reset bitmap, responses, and "correct" in contestants */
         reset();
@@ -235,15 +267,20 @@ void Contest::begin_contest(){
     /* TODO update total stats for contest? (maybe after contest is over) */
     double avg_correct = 0.0;
     for(int i =0; i != contestants.size(); ++i){
-        if(contestants[i]->num_correct > max_correct)
-            max_correct = contestants[i]->num_correct;
-        avg_correct += (double)contestants[i]->num_correct/(double)_contest_questions.size();
+        if(contestants[i].num_correct > max_correct)
+            max_correct = contestants[i].num_correct;
+        avg_correct += (double)contestants[i].num_correct/(double)_contest_questions.size();
     }
     avg_correct = (avg_correct/contestants.size())*100;
     average_correct = avg_correct;
 
     for(int i = 0; i != contestants.size(); ++i){
-        std::string message = "The contest is over -- thanks for playing " + contestants[i]->nickname + "!";
+        std::string message = "The contest is over -- thanks for playing " + contestants[i].nickname + "!";
+        yeet(message, contestants[i].sock);
+    }
+    //close all connections
+    for(int i = 0; i != contestants.size(); ++i){
+        close(contestants[i].sock);
     }
 }
 
@@ -297,6 +334,7 @@ std::string Contest::yoink(int socket){
     read(socket, msg, size);
     msg[size] = '\0';
     std::string rtn(msg);
+    DEBUG("Yoinked " + rtn);
     delete [] msg;
     return rtn;
 }

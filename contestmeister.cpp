@@ -61,7 +61,7 @@ int Contestmeister::command_control(std::istream& stream){
     bool run_client = true;
 
     if(&stream == &std::cin){
-        std::cout << "not file" << std::endl;
+        DEBUG("not a file");
         file = false;
     }
 
@@ -302,7 +302,7 @@ void Contestmeister::yoink(){
     if(readBytes != size){
         DEBUG("CM::Yoink wtf bro");
     }
-    std::cout << "CM::Yoink: " << msg << std::endl;
+    std::cout << msg << std::endl;
     delete [] msg;
 }
 

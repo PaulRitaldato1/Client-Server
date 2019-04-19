@@ -27,7 +27,7 @@
 #include <chrono>
 /* end C++ headers */
 
-#define DBG
+//#define DBG
 
 #ifdef DBG
 #define DEBUG(x) std::cout << x << std::endl;

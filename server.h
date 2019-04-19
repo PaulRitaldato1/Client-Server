@@ -24,6 +24,7 @@ class Server{
 
         //read in questions from file
         void read_in_questions();
+        void read_in_contests();
 
         //handling commands
         void create_question(std::string message);
