@@ -2,6 +2,8 @@
 Server server;
 void my_handler(int s){
     server.~Server();
+    std::cout << "\nCaught ctrl+c kill signal. Handled!" << std::endl;
+    exit(1);
 }
 int main(int argc, const char* argv[]){
 
@@ -9,7 +11,7 @@ int main(int argc, const char* argv[]){
     bool connection_alive = false;
     while (server_online){
         try{
-
+            signal(SIGINT, my_handler);
             //listen() will return true if a connection is accepted
             if(server.listening())
                 connection_alive = true;
@@ -21,7 +23,6 @@ int main(int argc, const char* argv[]){
 
         while(connection_alive){
             try {
-
                 //this function will return false if the kill command 'k' is given, which will then terminate the server completely
                 bool parse_out = server.parse_input();
                 DEBUG("Parse out: " + std::to_string(parse_out));
@@ -38,12 +39,13 @@ int main(int argc, const char* argv[]){
             }
         }
     }
-    struct sigaction sigIntHandler;
 
-    sigIntHandler.sa_handler = my_handler;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
+    // struct sigaction sigIntHandler;
 
-    sigaction(SIGINT, &sigIntHandler, NULL);
-    return 0;
+    // sigIntHandler.sa_handler = my_handler;
+    // sigemptyset(&sigIntHandler.sa_mask);
+    // sigIntHandler.sa_flags = 0;
+
+    // sigaction(SIGINT, &sigIntHandler, NULL);
+    return 1;
 }
