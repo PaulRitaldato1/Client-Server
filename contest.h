@@ -6,7 +6,7 @@ class Contest{
  public:
 
  Contest(uint8_t contest_num) : contest_num(contest_num) {};
-    Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<int> q_nums, std::vector<Question*>& all_questions);
+    Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<Question*>& all_questions);
     inline uint8_t get_contest_num(){ return contest_num; }
     void run_contest();
     bool add_question(Question* question);
@@ -21,6 +21,14 @@ class Contest{
     inline Contest* get_instance(){return this;}
 
     inline void set_average(double avg) {average_correct = avg; }
+    inline void set_q_avg(int q_num, double avg) {
+        int index = 0;
+        for(int i = 0; i != _contest_questions.size(); ++i){
+            if(q_num == _contest_questions[i]->get_question_num())
+                per_q_stats[i].second = avg;
+            }
+        
+     }
     inline void set_max(int max) {max_correct = max; }
 
     int yeet(std::string message, int socket);

@@ -1,28 +1,47 @@
 #include "contest.h"
 
-Contest::Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<int> q_nums, std::vector<Question*>& all_questions){
+Contest::Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<Question*>& all_questions){
     this->contest_num = contest_num;
     this->average_correct = average_correct;
     this->max_correct = max_correct;
 
-    for(int i : q_nums){
-        int index = 0;
-        for (int k = 0; k != all_questions.size(); ++k){
-            if(i = all_questions[k]->get_question_num()){
-                index = k;
-                break;
-            }
-        }
-        _contest_questions.push_back(all_questions[index]);
-    }
+    // for(int i = 0; i != q_nums.size(); ++i){
+    //     int index = 0;
+    //     for (int k = 0; k != all_questions.size(); ++k){
+    //         if(q_nums[i] = all_questions[k]->get_question_num()){
+    //             index = k;
+    //             break;
+    //         }
+    //     }
+    //     _contest_questions.push_back(all_questions[index]);
+    // }
 }
 bool Contest::add_question(Question* question){
     _contest_questions.push_back(question);
     total_questions = _contest_questions.size();
+    per_q_stats.push_back(std::make_pair(question->get_question_num(), 0.0));
 }
 
 std::string Contest::review(){
-    return "temp";
+    std::string eval = std::to_string(contest_num) + "\t"+ std::to_string(total_questions) + " questions, ";
+    if(!run){
+        eval += "not run";
+        return eval;
+    }
+    else{
+        eval += "run, average correct: " + std::to_string(average_correct) + ";" + " maximum correct: " + std::to_string(max_correct) + "\n";
+    }
+    for(int i = 0; i != per_q_stats.size(); ++i){
+        eval += "\t" + std::to_string(per_q_stats[i].first);
+        if(run){
+         eval += "\t" + std::to_string(per_q_stats[i].second) + "% corrrect\n";
+        }
+        else{
+            eval += "\n";
+        }
+    }
+
+    return eval;
 }
 
 std::string Contest::list_contest(){
@@ -135,6 +154,7 @@ void Contest::begin_contest(){
 
     if(contestants.size() == 0){
         std::cout << "No contestants connected after 60 seconds, terminating.." << std::endl;
+        run = false;
         return;
     }
     //No longer listening for contestants
@@ -261,16 +281,20 @@ void Contest::begin_contest(){
 
             yeet(response, contestants[i].sock);
         }
+        per_q_stats[question].first = _contest_questions[question]->get_question_num();
+        per_q_stats[question].second = per_q_percent;
         /* TODO reset bitmap, responses, and "correct" in contestants */
         reset();
     }
     /* TODO update total stats for contest? (maybe after contest is over) */
     double avg_correct = 0.0;
+    int tmpmax = 0;
     for(int i =0; i != contestants.size(); ++i){
-        if(contestants[i].num_correct > max_correct)
-            max_correct = contestants[i].num_correct;
+        if(contestants[i].num_correct > tmpmax)
+            tmpmax = contestants[i].num_correct;
         avg_correct += (double)contestants[i].num_correct/(double)_contest_questions.size();
     }
+    max_correct = tmpmax;
     avg_correct = (avg_correct/contestants.size())*100;
     average_correct = avg_correct;
 
@@ -292,11 +316,13 @@ void Contest::write_out(){
     out_str += std::to_string(contest_num) + "%";
 
     for(int i = 0; i != _contest_questions.size(); ++i){
-        out_str += std::to_string(_contest_questions[i]->get_question_num()) + "%%";
+        out_str += std::to_string(per_q_stats[i].first) + "," + std::to_string(per_q_stats[i].second) + ",";
     }
+    out_str += "#";
     out_str += std::to_string(average_correct) + "%";
     out_str += std::to_string(max_correct) + "%";
-    out_str += std::to_string(run) + "%";
+    int tmp = run;
+    out_str += std::to_string(tmp) + "%\n";
     std::ofstream file;
     file.open("contests.txt");
     if(!file.is_open()){

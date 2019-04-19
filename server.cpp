@@ -2,7 +2,7 @@
 
 Server::Server(){
     read_in_questions();
-    //read_in_contests();
+    read_in_contests();
     socket_init();
 }
 Server::~Server(){
@@ -470,6 +470,87 @@ void Server::read_in_questions(){
 
     }
 }
+
+void Server::read_in_contests(){
+    
+    std::ifstream file ("contests.txt");
+
+    if(!file.is_open())
+        return;
+    std::string tmp = "";
+    char delim = '%';
+    while(getline(file, tmp, delim)){
+        if(tmp == "\n"){
+            break;
+        }
+
+        //int pos = 0;
+
+        //pos = tmp.find(delim);
+
+        int c_num = std::stoi(tmp);
+        //tmp.erase(0, pos + delim.length());
+
+        std::vector<int> q_nums;
+        std::vector<double> per_q_stats;
+        delim = '#';    
+
+        getline(file, tmp, delim);
+
+        //pos = tmp.find(delim);
+        //getline(file, tmp, delim)
+        std::stringstream ss(tmp);
+
+        //int i;
+        delim = ',';
+        while(getline(ss, tmp, delim)){
+            q_nums.push_back(std::stoi(tmp));
+            getline(ss, tmp, delim);
+            if(tmp.size() < 1)
+                break;
+            per_q_stats.push_back(std::stod(tmp));
+            //q_nums.push_back(i);
+            // if(ss.peek() == ',' || ss.peek() == '%')
+            //     ss.ignore();
+            // double num;
+            // ss >> num;
+            // per_q_stats.push_back(num);
+        }
+            //tmp2.erase(0, pos+delim.length());        
+
+        //avgs
+        //pos = tmp.find(delim);
+        delim = '%';
+        getline(file, tmp, delim);
+        double avg = std::stod(tmp);
+        //tmp.erase(0, pos + delim.length());
+        
+        //pos = tmp.find(delim);
+        getline(file, tmp, delim);
+        int max = std::stoi(tmp);
+
+        //tmp.erase(0, pos + delim.length());
+
+        //pos = tmp.find(delim);
+        getline(file, tmp, delim);
+        int tmprun = std::stoi(tmp);
+        bool run = tmprun;
+        std::cout << "in read in run is " + run << std::endl;
+    //Contest::Contest(uint8_t contest_num, double average_correct, int max_correct, std::vector<int> q_nums, std::vector<Question*>& all_questions){
+        _contests.push_back(new Contest((uint8_t) c_num, avg, max, _questions));
+        
+        for(int i = 0; i != q_nums.size(); ++i){
+            int q_index = index_of(q_nums[i]);
+            if(q_index < 0){
+                continue;
+            }
+            _contests.back()->add_question(_questions[q_index]);
+            _contests.back()->set_q_avg(q_nums[i], per_q_stats[i]);
+        }
+    }
+}
+
+
 std::string Server::yoink(){
     DEBUG("server::yoink called");
     uint32_t length;
