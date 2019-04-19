@@ -300,7 +300,7 @@ void Contest::begin_contest(){
     average_correct = avg_correct;
 
     for(int i = 0; i != contestants.size(); ++i){
-        std::string message = "The contest is over -- thanks for playing " + contestants[i].nickname + "!";
+        std::string message = "The contest is over -- thanks for playing " + contestants[i].nickname + "!\n";
         yeet(message, contestants[i].sock);
     }
     //close all connections
@@ -354,7 +354,7 @@ std::string Contest::evaluate_contest(){
         return eval;
     }
     else{
-        eval += "run, average correct: " + std::to_string(average_correct) + ";" + " maximum correct: " + std::to_string(max_correct) + "\n";
+        eval += "run, average correct: " + std::to_string(average_correct) + ";" + " maximum correct: " + std::to_string(max_correct);
     }
 
     return eval;
